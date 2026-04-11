@@ -1,0 +1,17 @@
+# WAN 2.2 Text-to-Video serverless worker
+# Downloads T2V-specific UNETs (HIGH + LOW noise)
+FROM wan22-base:latest
+
+ENV PIPELINE_TYPE=t2v
+
+# T2V HIGH noise UNET (~14GB)
+RUN comfy model download \
+    --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors \
+    --relative-path models/diffusion_models \
+    --filename wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
+
+# T2V LOW noise UNET (~14GB)
+RUN comfy model download \
+    --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors \
+    --relative-path models/diffusion_models \
+    --filename wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
