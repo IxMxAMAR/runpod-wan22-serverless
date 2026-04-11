@@ -1,0 +1,10 @@
+{
+  "input": {
+    "template": "t2v-standard",
+    "params": {
+      "prompt": "A golden retriever running through a sunlit meadow, cinematic quality",
+      "duration": 3,
+      "seed": 42
+    }
+  }
+}

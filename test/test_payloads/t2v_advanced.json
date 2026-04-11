@@ -1,0 +1,22 @@
+{
+  "input": {
+    "template": "t2v-standard",
+    "params": {
+      "prompt": "A astronaut floating in space with Earth in the background",
+      "loras": [
+        {"name": "Wan2.2-T2V-4steps-HIGH-rank64-Seko-V2.0", "strength": 1.0},
+        {"name": "wan/SECRET_SAUCE_WAN2.1_14B_fp8", "strength": 0.8},
+        {"name": "wan/Wan2.1_T2V_14B_FusionX_LoRA", "strength": 1.0}
+      ],
+      "resolution": {"width": 832, "height": 480},
+      "duration": 5,
+      "seed": 1234,
+      "steps": 4,
+      "cfg": 1.0,
+      "shift": 5,
+      "fps": 24,
+      "rife_multiplier": 2,
+      "negative_prompt": "bright colors, overexposed, static, blurred details, subtitles, low quality, JPEG artifacts"
+    }
+  }
+}

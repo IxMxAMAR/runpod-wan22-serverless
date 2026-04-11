@@ -1,0 +1,11 @@
+{
+  "input": {
+    "template": "i2v-standard",
+    "params": {
+      "prompt": "The woman slowly turns her head and smiles at the camera",
+      "input_image": "BASE64_IMAGE_DATA_HERE",
+      "duration": 3,
+      "seed": 42
+    }
+  }
+}
