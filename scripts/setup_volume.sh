@@ -93,12 +93,12 @@ fi
 echo ""
 echo "=== Downloading RIFE Model ==="
 
-if [ ! -f "$RIFE_DIR/rife47.pth" ]; then
-    echo "Downloading rife47.pth..."
-    wget -q --show-progress -O "$RIFE_DIR/rife47.pth" \
-        "https://huggingface.co/Fannovel16/RIFE/resolve/main/rife47.pth"
+if [ ! -f "$RIFE_DIR/rife49.pth" ]; then
+    echo "Downloading rife49.pth..."
+    wget -q --show-progress -O "$RIFE_DIR/rife49.pth" \
+        "https://huggingface.co/Fannovel16/RIFE/resolve/main/rife49.pth"
 else
-    echo "rife47.pth already exists, skipping"
+    echo "rife49.pth already exists, skipping"
 fi
 
 echo ""
