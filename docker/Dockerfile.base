@@ -25,15 +25,21 @@ RUN comfy model download \
     --relative-path models/vae \
     --filename wan_2.1_vae.safetensors
 
+# VAE (alternative source)
+RUN comfy model download \
+    --url https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors \
+    --relative-path models/vae \
+    --filename wan_2.1_vae.safetensors || true
+
 # Text encoder (uncensored)
 RUN comfy model download \
-    --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/text_encoders/nsfw_wan_umt5-xxl_fp8_scaled.safetensors \
-    --relative-path models/text_encoders \
+    --url https://huggingface.co/NSFW-API/NSFW-Wan-UMT5-XXL/resolve/main/nsfw_wan_umt5-xxl_fp8_scaled.safetensors \
+    --relative-path models/clip \
     --filename nsfw_wan_umt5-xxl_fp8_scaled.safetensors
 
 # CLIP Vision
 RUN comfy model download \
-    --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors \
+    --url https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors \
     --relative-path models/clip_vision \
     --filename clip_vision_h.safetensors
 
@@ -48,7 +54,7 @@ COPY templates/ /comfyui/templates/
 
 # Set handler environment
 ENV TEMPLATE_DIR=/comfyui/templates
-ENV RUNPOD_VOLUME_PATH=/runpod-volume
+ENV RUNPOD_VOLUME_PATH=/workspace
 
 # The official worker-comfyui base image includes start.sh which:
 # 1. Verifies GPU/CUDA availability

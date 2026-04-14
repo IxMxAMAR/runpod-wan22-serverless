@@ -1,7 +1,7 @@
 # Network volume model paths for RunPod serverless
-# Mounts at /runpod-volume/ — contains LoRAs and RIFE models
+# Mounts at /workspace/ — contains LoRAs and RIFE models
 # Base models (UNETs, VAE, text encoders) are baked into the Docker image
 
 runpod_network_volume:
-    base_path: /runpod-volume/
+    base_path: /workspace/
     loras: models/loras/
