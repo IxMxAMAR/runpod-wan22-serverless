@@ -94,7 +94,7 @@ echo "=== Downloading RIFE Model ==="
 if [ ! -s "$RIFE_DIR/rife49.pth" ]; then
     echo "Downloading rife49.pth..."
     wget -q --show-progress -O "$RIFE_DIR/rife49.pth" \
-        "https://huggingface.co/Fannovel16/RIFE/resolve/main/rife49.pth"
+        "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation/releases/download/models/rife49.pth"
 else
     echo "rife49.pth already exists, skipping"
 fi
