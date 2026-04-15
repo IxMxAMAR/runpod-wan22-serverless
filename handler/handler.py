@@ -340,7 +340,6 @@ def collect_results(prompt_id):
 
     outputs = history[prompt_id].get("outputs", {})
     videos = []
-    thumbnails = []
 
     for node_id, node_output in outputs.items():
         if "gifs" in node_output:
@@ -359,24 +358,11 @@ def collect_results(prompt_id):
                     "type": "base64",
                     "data": base64.b64encode(video_resp.content).decode(),
                 })
-        if "images" in node_output:
-            for img in node_output["images"]:
-                img_resp = requests.get(
-                    f"{COMFY_BASE_URL}/view",
-                    params={
-                        "filename": img["filename"],
-                        "subfolder": img.get("subfolder", ""),
-                        "type": img.get("type", "output"),
-                    },
-                )
-                img_resp.raise_for_status()
-                thumbnails.append({
-                    "filename": img["filename"],
-                    "type": "base64",
-                    "data": base64.b64encode(img_resp.content).decode(),
-                })
+            # Only return the first video to stay under RunPod's response size limit
+            if videos:
+                return {"videos": [videos[0]]}
 
-    return {"videos": videos, "thumbnails": thumbnails}
+    return {"videos": videos}
 
 
 # ── Request Routing ─────────────────────────────────────────────────────────
