@@ -12,9 +12,6 @@ RUN comfy-node-install \
     comfyui-image-selector \
     basic_data_handling
 
-# Resolve cross-node dependency conflicts
-RUN comfy install --uv-compile
-
 # Download shared models
 # VAE
 RUN comfy model download \
