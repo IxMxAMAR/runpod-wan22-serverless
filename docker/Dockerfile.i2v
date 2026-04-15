@@ -43,13 +43,15 @@ RUN comfy model download \
     --relative-path models/diffusion_models \
     --filename wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors
 
-# Copy config, handler, and templates
+# Copy config and templates
 COPY config/extra_model_paths.yaml /comfyui/extra_model_paths.yaml
-COPY handler/ /comfyui/handler/
 COPY templates/ /comfyui/templates/
+
+# Copy handler — overwrites the default /handler.py (hardcoded in start.sh)
+COPY handler/ /comfyui/handler/
+COPY handler/handler.py /handler.py
 
 # Set environment
 ENV TEMPLATE_DIR=/comfyui/templates
 ENV RUNPOD_VOLUME_PATH=/runpod-volume
 ENV PIPELINE_TYPE=i2v
-ENV HANDLER_PATH=/comfyui/handler/handler.py
