@@ -1,0 +1,11 @@
+# WAN 2.2 LoRA List
+# Lines with HIGH auto-pair with LOW counterpart for dual-pass
+# Lines without HIGH/LOW are shared (used in both HIGH and LOW passes)
+# One LoRA per line, .safetensors extension optional
+
+# Lightning acceleration LoRAs (HIGH/LOW paired)
+Wan2.2-T2V-4steps-HIGH-rank64-Seko-V2.0
+
+# Quality enhancement LoRAs (shared — same for both passes)
+wan/SECRET_SAUCE_WAN2.1_14B_fp8
+wan/Wan2.1_T2V_14B_FusionX_LoRA

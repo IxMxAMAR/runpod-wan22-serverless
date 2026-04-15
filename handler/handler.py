@@ -225,16 +225,43 @@ class TemplateEngine:
         wf[node_id]["inputs"]["length"] = frames
 
     def set_loras(self, wf, loras, pipeline):
+        """Inject LoRAs into HIGH and LOW Power Lora Loader nodes.
+
+        LoRA names containing 'HIGH' are placed in the HIGH loader,
+        with the LOW counterpart (HIGH->LOW) in the LOW loader.
+        LoRAs without HIGH/LOW go into both loaders identically.
+        """
         ids = NODE_IDS[pipeline]
-        for loader_id in [ids["lora_high"], ids["lora_low"]]:
+
+        # Split into HIGH and LOW lists
+        high_loras = []
+        low_loras = []
+        for lora in loras:
+            name = lora["name"]
+            strength = lora.get("strength", 1.0)
+            if "HIGH" in name:
+                high_loras.append({"name": name, "strength": strength})
+                low_name = name.replace("HIGH", "LOW")
+                low_loras.append({"name": low_name, "strength": strength})
+            elif "LOW" in name:
+                # Skip — handled by the HIGH counterpart
+                continue
+            else:
+                # Shared LoRA — goes in both
+                high_loras.append({"name": name, "strength": strength})
+                low_loras.append({"name": name, "strength": strength})
+
+        # Inject into each loader
+        for loader_id, lora_list in [(ids["lora_high"], high_loras),
+                                      (ids["lora_low"], low_loras)]:
             inputs = wf[loader_id]["inputs"]
             for i in range(1, MAX_LORA_SLOTS + 1):
                 key = f"lora_{i}"
-                if i <= len(loras):
+                if i <= len(lora_list):
                     inputs[key] = {
                         "on": True,
-                        "lora": loras[i - 1]["name"],
-                        "strength": loras[i - 1]["strength"],
+                        "lora": lora_list[i - 1]["name"],
+                        "strength": lora_list[i - 1]["strength"],
                     }
                 elif key in inputs:
                     inputs[key]["on"] = False
