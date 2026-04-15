@@ -1,8 +1,41 @@
 # WAN 2.2 Image-to-Video serverless worker
-# Downloads I2V-specific UNETs (HIGH + LOW noise)
-FROM wan22-base:latest
+# Self-contained: base + custom nodes + shared models + I2V UNETs
+FROM runpod/worker-comfyui:latest-base
 
-ENV PIPELINE_TYPE=i2v
+# Install custom nodes via comfy registry
+RUN comfy-node-install \
+    rgthree-comfy \
+    comfyui-videohelpersuite \
+    comfyui-easy-use \
+    comfyui-frame-interpolation \
+    comfyui_essentials \
+    comfyui-image-selector \
+    ComfyUI-Studio-nodes \
+    mikey_nodes \
+    comfyui-custom-scripts \
+    image-saver
+
+# Resolve cross-node dependency conflicts
+RUN comfy install --uv-compile
+
+# Download shared models
+# VAE
+RUN comfy model download \
+    --url https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors \
+    --relative-path models/vae \
+    --filename wan_2.1_vae.safetensors
+
+# Text encoder (uncensored)
+RUN comfy model download \
+    --url https://huggingface.co/NSFW-API/NSFW-Wan-UMT5-XXL/resolve/main/nsfw_wan_umt5-xxl_fp8_scaled.safetensors \
+    --relative-path models/clip \
+    --filename nsfw_wan_umt5-xxl_fp8_scaled.safetensors
+
+# CLIP Vision
+RUN comfy model download \
+    --url https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors \
+    --relative-path models/clip_vision \
+    --filename clip_vision_h.safetensors
 
 # I2V HIGH noise UNET (~14GB)
 RUN comfy model download \
@@ -15,3 +48,14 @@ RUN comfy model download \
     --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors \
     --relative-path models/diffusion_models \
     --filename wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors
+
+# Copy config, handler, and templates
+COPY config/extra_model_paths.yaml /comfyui/extra_model_paths.yaml
+COPY handler/ /comfyui/handler/
+COPY templates/ /comfyui/templates/
+
+# Set environment
+ENV TEMPLATE_DIR=/comfyui/templates
+ENV RUNPOD_VOLUME_PATH=/workspace
+ENV PIPELINE_TYPE=i2v
+ENV HANDLER_PATH=/comfyui/handler/handler.py
