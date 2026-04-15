@@ -11,9 +11,7 @@ RUN comfy-node-install \
     comfyui_essentials \
     comfyui-image-selector \
     ComfyUI-Studio-nodes \
-    mikey_nodes \
-    comfyui-custom-scripts \
-    image-saver
+    basic_data_handling
 
 # Resolve cross-node dependency conflicts
 RUN comfy install --uv-compile
