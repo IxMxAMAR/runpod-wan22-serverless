@@ -4,7 +4,7 @@ import json
 import os
 import pytest
 
-from handler.template_engine import TemplateEngine
+from handler.handler import TemplateEngine
 
 
 @pytest.fixture
