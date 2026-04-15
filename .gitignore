@@ -22,3 +22,7 @@ Thumbs.db
 
 # Test artifacts
 test/test_payloads/*.output.json
+
+# GUI output and config (contains API key)
+output/
+gui_config.json
