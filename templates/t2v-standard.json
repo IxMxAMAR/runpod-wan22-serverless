@@ -249,12 +249,12 @@
       },
       "lora_2": {
         "on": true,
-        "lora": "wan/\SECRET_SAUCE_WAN2.1_14B_fp8.safetensors",
+        "lora": "wan/SSECRET_SAUCE_WAN2.1_14B_fp8.safetensors",
         "strength": 0.8
       },
       "lora_3": {
         "on": true,
-        "lora": "wan/\Wan2.1_T2V_14B_FusionX_LoRA.safetensors",
+        "lora": "wan/SWan2.1_T2V_14B_FusionX_LoRA.safetensors",
         "strength": 1
       },
       "➕ Add Lora": "",
@@ -284,12 +284,12 @@
       },
       "lora_2": {
         "on": true,
-        "lora": "wan/\SECRET_SAUCE_WAN2.1_14B_fp8.safetensors",
+        "lora": "wan/SSECRET_SAUCE_WAN2.1_14B_fp8.safetensors",
         "strength": 0.8
       },
       "lora_3": {
         "on": true,
-        "lora": "wan/\Wan2.1_T2V_14B_FusionX_LoRA.safetensors",
+        "lora": "wan/SWan2.1_T2V_14B_FusionX_LoRA.safetensors",
         "strength": 1
       },
       "➕ Add Lora": "",

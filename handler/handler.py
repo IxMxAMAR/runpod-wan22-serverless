@@ -24,6 +24,7 @@ try:
     import runpod
 except ImportError:
     runpod = None
+    print("WARNING: runpod package not found — handler will not start in serverless mode")
 
 logger = logging.getLogger(__name__)
 
@@ -229,19 +230,16 @@ class TemplateEngine:
             inputs = wf[loader_id]["inputs"]
             for i in range(1, MAX_LORA_SLOTS + 1):
                 key = f"lora_{i}"
-                if key not in inputs:
-                    if i <= len(loras):
-                        inputs[key] = {}
-                    else:
-                        break
                 if i <= len(loras):
                     inputs[key] = {
                         "on": True,
                         "lora": loras[i - 1]["name"],
                         "strength": loras[i - 1]["strength"],
                     }
-                else:
+                elif key in inputs:
                     inputs[key]["on"] = False
+                else:
+                    break
 
     def set_fps(self, wf, fps, pipeline):
         wf[NODE_IDS[pipeline]["video_combine"]]["inputs"]["frame_rate"] = fps
@@ -275,14 +273,14 @@ def validate_input(input_data):
 
 # ── ComfyUI Communication ──────────────────────────────────────────────────
 
-def wait_for_comfyui(max_retries=60, interval=1.0):
+def wait_for_comfyui(max_retries=120, interval=1.0):
     for i in range(max_retries):
         try:
             resp = requests.get(f"{COMFY_BASE_URL}/system_stats", timeout=5)
             if resp.status_code == 200:
                 logger.info("ComfyUI ready after %d attempts", i + 1)
                 return True
-        except requests.ConnectionError:
+        except (requests.ConnectionError, requests.Timeout, requests.RequestException):
             pass
         time.sleep(interval)
     raise RuntimeError(f"ComfyUI not ready after {max_retries} attempts")
@@ -315,7 +313,7 @@ def queue_workflow(workflow, client_id):
 
 def monitor_execution(prompt_id, client_id):
     ws_url = f"ws://{COMFY_HOST}:{COMFY_PORT}/ws?clientId={client_id}"
-    ws = websocket.create_connection(ws_url)
+    ws = websocket.create_connection(ws_url, timeout=600)
     try:
         while True:
             msg = ws.recv()

@@ -43,6 +43,11 @@ RUN comfy model download \
     --relative-path models/diffusion_models \
     --filename wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors
 
+# RIFE frame interpolation model (21MB — auto-downloads at runtime but baking avoids latency)
+RUN mkdir -p /comfyui/custom_nodes/comfyui-frame-interpolation/ckpts/rife && \
+    wget -q -O /comfyui/custom_nodes/comfyui-frame-interpolation/ckpts/rife/rife49.pth \
+    "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation/releases/download/models/rife49.pth"
+
 # Copy config and templates
 COPY config/extra_model_paths.yaml /comfyui/extra_model_paths.yaml
 COPY templates/ /comfyui/templates/
