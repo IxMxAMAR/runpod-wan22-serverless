@@ -3,5 +3,5 @@
 # Base models (UNETs, VAE, text encoders) are baked into the Docker image
 
 runpod_network_volume:
-    base_path: /workspace/
+    base_path: /runpod-volume/
     loras: models/loras/

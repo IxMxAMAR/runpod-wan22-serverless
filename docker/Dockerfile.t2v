@@ -56,6 +56,6 @@ COPY templates/ /comfyui/templates/
 
 # Set environment
 ENV TEMPLATE_DIR=/comfyui/templates
-ENV RUNPOD_VOLUME_PATH=/workspace
+ENV RUNPOD_VOLUME_PATH=/runpod-volume
 ENV PIPELINE_TYPE=t2v
 ENV HANDLER_PATH=/comfyui/handler/handler.py
