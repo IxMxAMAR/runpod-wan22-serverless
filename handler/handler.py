@@ -15,8 +15,13 @@ import base64
 import json
 import logging
 import os
+import sys
 import time
 import uuid
+
+# Ensure handler package is importable when running from /handler.py
+sys.path.insert(0, "/comfyui")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
 import websocket
