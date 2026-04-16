@@ -171,8 +171,23 @@ class TemplateEngine:
         frames = calculate_frames(duration, pipeline)
         self.set_frame_count(wf, frames, pipeline)
 
-        if "loras" in params:
-            self.set_loras(wf, params["loras"], pipeline)
+        if "high_loras" in params or "low_loras" in params:
+            high = params.get("high_loras", [])
+            low = params.get("low_loras", [])
+            self.set_loras(wf, high, low, pipeline)
+        elif "loras" in params:
+            # Backwards compat: single list, auto-split HIGH/LOW
+            high, low = [], []
+            for lora in params["loras"]:
+                name = lora["name"]
+                s = lora.get("strength", 1.0)
+                if "HIGH" in name:
+                    high.append({"name": name, "strength": s})
+                    low.append({"name": name.replace("HIGH", "LOW"), "strength": s})
+                elif "LOW" not in name:
+                    high.append({"name": name, "strength": s})
+                    low.append({"name": name, "strength": s})
+            self.set_loras(wf, high, low, pipeline)
         if "steps" in params:
             self.set_steps(wf, params["steps"], pipeline)
         if "cfg" in params:
@@ -224,34 +239,9 @@ class TemplateEngine:
         node_id = NODE_IDS[pipeline]["latent"]
         wf[node_id]["inputs"]["length"] = frames
 
-    def set_loras(self, wf, loras, pipeline):
-        """Inject LoRAs into HIGH and LOW Power Lora Loader nodes.
-
-        LoRA names containing 'HIGH' are placed in the HIGH loader,
-        with the LOW counterpart (HIGH->LOW) in the LOW loader.
-        LoRAs without HIGH/LOW go into both loaders identically.
-        """
+    def set_loras(self, wf, high_loras, low_loras, pipeline):
+        """Inject LoRAs into HIGH and LOW Power Lora Loader nodes separately."""
         ids = NODE_IDS[pipeline]
-
-        # Split into HIGH and LOW lists
-        high_loras = []
-        low_loras = []
-        for lora in loras:
-            name = lora["name"]
-            strength = lora.get("strength", 1.0)
-            if "HIGH" in name:
-                high_loras.append({"name": name, "strength": strength})
-                low_name = name.replace("HIGH", "LOW")
-                low_loras.append({"name": low_name, "strength": strength})
-            elif "LOW" in name:
-                # Skip — handled by the HIGH counterpart
-                continue
-            else:
-                # Shared LoRA — goes in both
-                high_loras.append({"name": name, "strength": strength})
-                low_loras.append({"name": name, "strength": strength})
-
-        # Inject into each loader
         for loader_id, lora_list in [(ids["lora_high"], high_loras),
                                       (ids["lora_low"], low_loras)]:
             inputs = wf[loader_id]["inputs"]
@@ -405,6 +395,10 @@ def route_request(input_data):
         template_name = data["template"]
         params = data["params"]
 
+        if "high_loras" in params:
+            params["high_loras"] = validate_loras(params["high_loras"], VOLUME_PATH)
+        if "low_loras" in params:
+            params["low_loras"] = validate_loras(params["low_loras"], VOLUME_PATH)
         if "loras" in params:
             params["loras"] = validate_loras(params["loras"], VOLUME_PATH)
 

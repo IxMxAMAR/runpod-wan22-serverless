@@ -10,6 +10,12 @@ from pathlib import Path
 
 import requests
 
+try:
+    from PIL import Image, ImageTk
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
 # ── Config ──────────────────────────────────────────────────────────────────
 
 CONFIG_FILE = Path(__file__).parent / "gui_config.json"
@@ -84,6 +90,7 @@ class App:
         self.root = root
         self.root.title("WAN 2.2 Serverless")
         self.root.geometry("750x900")
+        self.root.minsize(500, 600)
         self.root.configure(bg="#1a1a2e")
         self.config = load_config()
         self.lora_vars = []  # List of (name, BooleanVar, StringVar_strength)
@@ -108,21 +115,24 @@ class App:
 
     def _build_ui(self):
         # Scrollable main frame
-        canvas = tk.Canvas(self.root, bg="#1a1a2e", highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
-        self.main = ttk.Frame(canvas, padding=16)
+        self.canvas = tk.Canvas(self.root, bg="#1a1a2e", highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
+        self.main = ttk.Frame(self.canvas, padding=16)
 
         self.main.bind("<Configure>",
-                       lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=self.main, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+                       lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self._canvas_win = self.canvas.create_window((0, 0), window=self.main, anchor="nw")
+        self.canvas.configure(yscrollcommand=scrollbar.set)
 
-        canvas.pack(side="left", fill="both", expand=True)
+        # Track canvas width so inner frame stretches on resize
+        self.canvas.bind("<Configure>", self._on_canvas_resize)
+
+        self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
         # Mouse wheel scrolling
-        canvas.bind_all("<MouseWheel>",
-                        lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        self.canvas.bind_all("<MouseWheel>",
+                             lambda e: self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
 
         main = self.main
 
@@ -175,9 +185,22 @@ class App:
         # ── I2V Image ───────────────────────────────────────────────────
         self.image_frame = ttk.LabelFrame(main, text="Input Image (I2V)", padding=8)
         self.image_path_var = tk.StringVar()
-        ttk.Entry(self.image_frame, textvariable=self.image_path_var, width=50).pack(
+        self._thumb_photo = None  # prevent GC
+
+        img_top = ttk.Frame(self.image_frame)
+        img_top.pack(fill="x")
+        ttk.Entry(img_top, textvariable=self.image_path_var, width=40).pack(
             side="left", fill="x", expand=True, padx=(0, 8))
-        ttk.Button(self.image_frame, text="Browse", command=self._browse_image).pack(side="right")
+        ttk.Button(img_top, text="Browse", command=self._browse_image).pack(side="left", padx=(0, 4))
+        ttk.Button(img_top, text="Clear", command=self._clear_image).pack(side="left")
+
+        # Thumbnail preview (click to browse)
+        self.thumb_label = tk.Label(self.image_frame, bg="#16213e", relief="sunken",
+                                    text="Click to select image", fg="#666",
+                                    font=("Segoe UI", 9), cursor="hand2",
+                                    compound="center")
+        self.thumb_label.pack(fill="x", pady=(8, 0), ipady=40)
+        self.thumb_label.bind("<Button-1>", lambda e: self._browse_image())
 
         # ── LoRAs ───────────────────────────────────────────────────────
         lora_frame = ttk.LabelFrame(main, text="LoRAs", padding=8)
@@ -185,30 +208,46 @@ class App:
 
         # File selector row
         file_row = ttk.Frame(lora_frame)
-        file_row.pack(fill="x", pady=(0, 8))
+        file_row.pack(fill="x", pady=(0, 6))
 
-        ttk.Label(file_row, text="LoRA list file:").pack(side="left", padx=(0, 4))
+        ttk.Label(file_row, text="List:").pack(side="left", padx=(0, 4))
         self.lora_file_var = tk.StringVar(value=self.config.get("lora_file", ""))
-        ttk.Entry(file_row, textvariable=self.lora_file_var, width=40).pack(
+        ttk.Entry(file_row, textvariable=self.lora_file_var, width=35).pack(
             side="left", fill="x", expand=True, padx=(0, 4))
         ttk.Button(file_row, text="Browse", command=self._browse_lora_file).pack(side="left", padx=(0, 4))
         ttk.Button(file_row, text="Load", command=self._load_loras).pack(side="left")
 
-        # LoRA checkboxes container
-        self.lora_container = ttk.Frame(lora_frame)
-        self.lora_container.pack(fill="x")
+        # Two-column layout: HIGH | LOW
+        columns = ttk.Frame(lora_frame)
+        columns.pack(fill="x", pady=(0, 4))
+        columns.columnconfigure(0, weight=1)
+        columns.columnconfigure(1, weight=1)
 
-        # Default strength
-        strength_row = ttk.Frame(lora_frame)
-        strength_row.pack(fill="x", pady=(8, 0))
-        ttk.Label(strength_row, text="Default strength:").pack(side="left", padx=(0, 4))
+        # HIGH column
+        high_frame = ttk.LabelFrame(columns, text="HIGH Loader", padding=4)
+        high_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        self.high_lora_container = ttk.Frame(high_frame)
+        self.high_lora_container.pack(fill="x")
+
+        # LOW column
+        low_frame = ttk.LabelFrame(columns, text="LOW Loader", padding=4)
+        low_frame.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        self.low_lora_container = ttk.Frame(low_frame)
+        self.low_lora_container.pack(fill="x")
+
+        self.high_lora_vars = []  # [(name, BooleanVar, StringVar)]
+        self.low_lora_vars = []
+
+        # Buttons row
+        btn_row = ttk.Frame(lora_frame)
+        btn_row.pack(fill="x", pady=(4, 0))
+        ttk.Button(btn_row, text="All", command=self._select_all_loras).pack(side="left", padx=2)
+        ttk.Button(btn_row, text="None", command=self._deselect_all_loras).pack(side="left", padx=2)
+        ttk.Label(btn_row, text="str:", foreground="#888").pack(side="right", padx=(4, 0))
         self.default_strength_var = tk.StringVar(value="1.0")
-        ttk.Entry(strength_row, textvariable=self.default_strength_var, width=6).pack(side="left")
+        ttk.Entry(btn_row, textvariable=self.default_strength_var, width=5).pack(side="right")
+        ttk.Label(btn_row, text="Default", foreground="#888").pack(side="right", padx=(0, 4))
 
-        ttk.Button(strength_row, text="Select All", command=self._select_all_loras).pack(side="right", padx=4)
-        ttk.Button(strength_row, text="Deselect All", command=self._deselect_all_loras).pack(side="right", padx=4)
-
-        # Auto-load if file was saved
         if self.lora_file_var.get():
             self._load_loras()
 
@@ -300,70 +339,83 @@ class App:
             self._load_loras()
 
     def _load_loras(self):
-        # Clear existing
-        for widget in self.lora_container.winfo_children():
+        for widget in self.high_lora_container.winfo_children():
             widget.destroy()
-        self.lora_vars.clear()
+        for widget in self.low_lora_container.winfo_children():
+            widget.destroy()
+        self.high_lora_vars.clear()
+        self.low_lora_vars.clear()
 
         filepath = self.lora_file_var.get()
         names = load_lora_list(filepath)
 
         if not names:
-            ttk.Label(self.lora_container, text="No LoRAs loaded. Select a text file.",
-                      foreground="#888").pack(anchor="w")
+            ttk.Label(self.high_lora_container, text="Load a file",
+                      foreground="#666").pack(anchor="w")
+            ttk.Label(self.low_lora_container, text="Load a file",
+                      foreground="#666").pack(anchor="w")
             return
 
+        default_str = self.default_strength_var.get()
+
         for name in names:
-            row = ttk.Frame(self.lora_container)
-            row.pack(fill="x", pady=1)
+            # HIGH column
+            self._add_lora_row(self.high_lora_container, self.high_lora_vars,
+                               name, default_str)
+            # LOW column — derive LOW name if HIGH, otherwise same
+            low_name = name.replace("HIGH", "LOW") if "HIGH" in name else name
+            self._add_lora_row(self.low_lora_container, self.low_lora_vars,
+                               low_name, default_str)
 
-            enabled = tk.BooleanVar(value=False)
-            strength = tk.StringVar(value=self.default_strength_var.get())
+        self._log(f"Loaded {len(names)} LoRAs")
 
-            cb = ttk.Checkbutton(row, text=name, variable=enabled)
-            cb.pack(side="left", padx=(0, 8))
-
-            ttk.Label(row, text="str:", foreground="#888").pack(side="right", padx=(4, 0))
-            ttk.Entry(row, textvariable=strength, width=5).pack(side="right")
-
-            # Show if it's a HIGH/LOW pair or shared
-            if "HIGH" in name:
-                low_name = name.replace("HIGH", "LOW")
-                ttk.Label(row, text=f"(+ {low_name})", foreground="#666",
-                          font=("Segoe UI", 8)).pack(side="left", padx=4)
-
-            self.lora_vars.append((name, enabled, strength))
-
-        self._log(f"Loaded {len(names)} LoRAs from {Path(filepath).name}")
+    def _add_lora_row(self, container, var_list, name, default_str):
+        row = ttk.Frame(container)
+        row.pack(fill="x", pady=1)
+        enabled = tk.BooleanVar(value=False)
+        strength = tk.StringVar(value=default_str)
+        # Truncate display name for compactness
+        display = Path(name).stem if len(name) > 30 else name
+        ttk.Checkbutton(row, text=display, variable=enabled).pack(side="left")
+        ttk.Entry(row, textvariable=strength, width=4).pack(side="right")
+        var_list.append((name, enabled, strength))
 
     def _select_all_loras(self):
-        for _, enabled, _ in self.lora_vars:
+        for _, enabled, _ in self.high_lora_vars + self.low_lora_vars:
             enabled.set(True)
 
     def _deselect_all_loras(self):
-        for _, enabled, _ in self.lora_vars:
+        for _, enabled, _ in self.high_lora_vars + self.low_lora_vars:
             enabled.set(False)
 
     def _get_selected_loras(self):
-        """Get selected LoRAs as list of {name, strength} dicts.
-
-        Names include .safetensors extension. The handler's set_loras
-        will handle HIGH/LOW pairing automatically.
-        """
-        selected = []
-        for name, enabled, strength_var in self.lora_vars:
+        """Get selected LoRAs as {high_loras, low_loras} for the handler."""
+        high = []
+        for name, enabled, strength_var in self.high_lora_vars:
             if enabled.get():
-                lora_name = name
-                if not lora_name.endswith(".safetensors"):
-                    lora_name += ".safetensors"
+                lora_name = name if name.endswith(".safetensors") else f"{name}.safetensors"
                 try:
-                    strength = float(strength_var.get())
+                    s = float(strength_var.get())
                 except ValueError:
-                    strength = 1.0
-                selected.append({"name": lora_name, "strength": strength})
-        return selected
+                    s = 1.0
+                high.append({"name": lora_name, "strength": s})
+
+        low = []
+        for name, enabled, strength_var in self.low_lora_vars:
+            if enabled.get():
+                lora_name = name if name.endswith(".safetensors") else f"{name}.safetensors"
+                try:
+                    s = float(strength_var.get())
+                except ValueError:
+                    s = 1.0
+                low.append({"name": lora_name, "strength": s})
+
+        return high, low
 
     # ── Other UI ────────────────────────────────────────────────────────
+
+    def _on_canvas_resize(self, event):
+        self.canvas.itemconfig(self._canvas_win, width=event.width)
 
     def _toggle_mode(self):
         if self.mode_var.get() == "i2v":
@@ -377,6 +429,27 @@ class App:
             filetypes=[("Images", "*.png *.jpg *.jpeg *.webp")])
         if path:
             self.image_path_var.set(path)
+            self._show_thumbnail(path)
+
+    def _clear_image(self):
+        self.image_path_var.set("")
+        self._thumb_photo = None
+        self.thumb_label.configure(image="", text="Click to select image",
+                                   fg="#666", font=("Segoe UI", 9),
+                                   width=0, height=0)
+
+    def _show_thumbnail(self, path):
+        if not HAS_PIL or not os.path.isfile(path):
+            return
+        try:
+            img = Image.open(path)
+            img.thumbnail((400, 250), Image.LANCZOS)
+            self._thumb_photo = ImageTk.PhotoImage(img)
+            self.thumb_label.configure(image=self._thumb_photo, text="",
+                                       width=img.width, height=img.height)
+        except Exception as e:
+            self.thumb_label.configure(image="", text=f"Preview unavailable: {e}",
+                                       fg="#888", font=("Segoe UI", 9))
 
     def _save_settings(self):
         self.config["api_key"] = self.api_key_var.get()
@@ -387,6 +460,8 @@ class App:
         self._log("Settings saved.")
 
     def _log(self, msg):
+        if not hasattr(self, "result_text"):
+            return
         self.result_text.configure(state="normal")
         self.result_text.insert("end", msg + "\n")
         self.result_text.see("end")
@@ -413,10 +488,11 @@ class App:
         if seed:
             params["seed"] = int(seed)
 
-        # LoRAs
-        loras = self._get_selected_loras()
-        if loras:
-            params["loras"] = loras
+        # LoRAs (separate HIGH and LOW lists)
+        high_loras, low_loras = self._get_selected_loras()
+        if high_loras or low_loras:
+            params["high_loras"] = high_loras
+            params["low_loras"] = low_loras
 
         # Advanced params (only if filled)
         for key, var in [("steps", self.steps_var), ("cfg", self.cfg_var),
@@ -461,11 +537,14 @@ class App:
         self._log(f"Prompt: {payload['input']['params']['prompt'][:80]}...")
 
         # Log selected LoRAs
-        loras = payload["input"]["params"].get("loras", [])
-        if loras:
-            self._log(f"LoRAs: {', '.join(l['name'] for l in loras)}")
+        p = payload["input"]["params"]
+        if p.get("high_loras") or p.get("low_loras"):
+            h = [l["name"] for l in p.get("high_loras", [])]
+            l = [l["name"] for l in p.get("low_loras", [])]
+            self._log(f"HIGH: {', '.join(h) if h else 'none'}")
+            self._log(f"LOW:  {', '.join(l) if l else 'none'}")
         else:
-            self._log("LoRAs: using template defaults")
+            self._log("LoRAs: template defaults")
 
         threading.Thread(target=self._run_job, args=(endpoint_id, api_key, payload),
                          daemon=True).start()

@@ -230,25 +230,33 @@ class TestResolutionAndFrames:
 
 
 class TestLoraInjection:
-    def test_set_loras(self, engine):
+    def test_set_loras_separate_high_low(self, engine):
         wf = engine.load_template("t2v-standard")
-        loras = [
-            {"name": "my-lora.safetensors", "strength": 0.9},
-            {"name": "wan/other.safetensors", "strength": 0.5},
+        high = [
+            {"name": "my-HIGH.safetensors", "strength": 0.9},
+            {"name": "shared.safetensors", "strength": 0.5},
         ]
-        engine.set_loras(wf, loras, pipeline="t2v")
+        low = [
+            {"name": "my-LOW.safetensors", "strength": 0.9},
+            {"name": "shared.safetensors", "strength": 0.5},
+        ]
+        engine.set_loras(wf, high, low, pipeline="t2v")
 
         high_loader = wf["15"]["inputs"]
-        assert high_loader["lora_1"]["lora"] == "my-lora.safetensors"
-        assert high_loader["lora_1"]["strength"] == 0.9
+        assert high_loader["lora_1"]["lora"] == "my-HIGH.safetensors"
         assert high_loader["lora_1"]["on"] is True
-        assert high_loader["lora_2"]["lora"] == "wan/other.safetensors"
-        assert high_loader["lora_2"]["strength"] == 0.5
+        assert high_loader["lora_2"]["lora"] == "shared.safetensors"
+
+        low_loader = wf["16"]["inputs"]
+        assert low_loader["lora_1"]["lora"] == "my-LOW.safetensors"
+        assert low_loader["lora_1"]["on"] is True
+        assert low_loader["lora_2"]["lora"] == "shared.safetensors"
 
     def test_set_loras_clears_extra_slots(self, engine):
         wf = engine.load_template("t2v-standard")
-        loras = [{"name": "single.safetensors", "strength": 1.0}]
-        engine.set_loras(wf, loras, pipeline="t2v")
+        high = [{"name": "single.safetensors", "strength": 1.0}]
+        low = [{"name": "single.safetensors", "strength": 1.0}]
+        engine.set_loras(wf, high, low, pipeline="t2v")
 
         high_loader = wf["15"]["inputs"]
         assert high_loader["lora_1"]["on"] is True
