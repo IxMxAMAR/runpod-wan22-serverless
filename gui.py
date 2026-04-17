@@ -74,6 +74,55 @@ def derive_low_name(name):
     return None  # Shared LoRA, no HIGH/LOW distinction
 
 
+# LoRAs that should be enabled by default for a given pipeline.
+# Match by substring — case-sensitive.
+DEFAULT_ENABLED = {
+    "t2v": [
+        "SECRET_SAUCE",
+        "Wan2.1_T2V_14B_FusionX",
+        "Wan2.2-T2V-4steps-HIGH-rank64-Seko",
+    ],
+    "i2v": [
+        "SECRET_SAUCE",
+        "Wan2.1_I2V_14B_FusionX",
+        "Wan2.2-I2V-HIGH-4steps-lora-rank64-Seko",
+    ],
+}
+
+
+def lora_for_pipeline(name, pipeline):
+    """Return True if this LoRA should appear in the given pipeline's list.
+
+    Rules:
+      - Names with 't2v' (any case) → T2V only
+      - Names with 'i2v' (any case) → I2V only
+      - Names with neither → shown in both
+    """
+    lower = name.lower()
+    has_t2v = "t2v" in lower
+    has_i2v = "i2v" in lower
+    if has_t2v and not has_i2v:
+        return pipeline == "t2v"
+    if has_i2v and not has_t2v:
+        return pipeline == "i2v"
+    return True  # No marker or both — universal
+
+
+def is_default_enabled(name, pipeline):
+    """Return True if this LoRA should be auto-enabled by default."""
+    return any(pat in name for pat in DEFAULT_ENABLED.get(pipeline, []))
+
+
+def truncate_display(name, max_len=60):
+    """Truncate a LoRA name for compact display, preserving the meaningful end."""
+    if len(name) <= max_len:
+        return name
+    # Show start + ... + end so HIGH/LOW suffix stays visible
+    head = name[: max_len // 2 - 2]
+    tail = name[-(max_len // 2 - 1):]
+    return f"{head}…{tail}"
+
+
 # ── API ─────────────────────────────────────────────────────────────────────
 
 def send_request(endpoint_id, api_key, payload):
@@ -369,57 +418,51 @@ class App:
             return
 
         default_str = self.default_strength_var.get()
+        pipeline = self.mode_var.get()
 
-        # Skip lines that are LOW variants — they'll be auto-derived from HIGH
-        low_patterns = [lo for _, lo in HIGH_LOW_PATTERNS]
+        # Skip LOW-only lines whose HIGH counterpart is also in the list
         filtered = []
         for name in names:
-            # Skip if this is a LOW variant whose HIGH counterpart is already in the list
-            is_low = any(lo in name for lo in low_patterns) and not any(
-                hi in name for hi, _ in HIGH_LOW_PATTERNS if hi != "High" or name.count("High") > 0
-            )
-            # Simpler: if line is pure LOW (no HIGH pattern), check if HIGH variant was listed
             skip = False
             for hi, lo in HIGH_LOW_PATTERNS:
                 if lo in name and hi not in name:
-                    # This is a LOW-only line. Check if HIGH counterpart is in names.
-                    high_equiv = name.replace(lo, hi)
-                    if high_equiv in names:
+                    if name.replace(lo, hi) in names:
                         skip = True
                         break
             if not skip:
                 filtered.append(name)
 
-        for name in filtered:
-            # HIGH column gets the name as-is
+        # Filter by pipeline (T2V/I2V)
+        visible = [n for n in filtered if lora_for_pipeline(n, pipeline)]
+
+        for name in visible:
+            low_name = derive_low_name(name) or name
+            # Shared vars — HIGH and LOW checkboxes/strengths are linked
+            auto_on = is_default_enabled(name, pipeline)
+            enabled = tk.BooleanVar(value=auto_on)
+            strength = tk.StringVar(value=default_str)
             self._add_lora_row(self.high_lora_container, self.high_lora_vars,
-                               name, default_str)
-            # LOW column gets derived name (or same name if shared)
-            low_name = derive_low_name(name)
-            if low_name is None:
-                low_name = name  # Shared LoRA
+                               name, enabled, strength)
             self._add_lora_row(self.low_lora_container, self.low_lora_vars,
-                               low_name, default_str)
+                               low_name, enabled, strength)
 
-        self._log(f"Loaded {len(filtered)} LoRAs")
+        self._log(f"Loaded {len(visible)} LoRAs for {pipeline.upper()}")
 
-    def _add_lora_row(self, container, var_list, name, default_str):
+    def _add_lora_row(self, container, var_list, name, enabled, strength):
         row = ttk.Frame(container)
         row.pack(fill="x", pady=1)
-        enabled = tk.BooleanVar(value=False)
-        strength = tk.StringVar(value=default_str)
-        # Truncate display name for compactness
-        display = Path(name).stem if len(name) > 30 else name
+        display = truncate_display(name)
         ttk.Checkbutton(row, text=display, variable=enabled).pack(side="left")
         ttk.Entry(row, textvariable=strength, width=4).pack(side="right")
         var_list.append((name, enabled, strength))
 
     def _select_all_loras(self):
-        for _, enabled, _ in self.high_lora_vars + self.low_lora_vars:
+        # HIGH and LOW share vars now, so only iterate HIGH
+        for _, enabled, _ in self.high_lora_vars:
             enabled.set(True)
 
     def _deselect_all_loras(self):
-        for _, enabled, _ in self.high_lora_vars + self.low_lora_vars:
+        for _, enabled, _ in self.high_lora_vars:
             enabled.set(False)
 
     def _get_selected_loras(self):
@@ -457,6 +500,9 @@ class App:
                                   after=self.prompt_text.master)
         else:
             self.image_frame.pack_forget()
+        # Refresh LoRA list for the new pipeline (only if already loaded)
+        if hasattr(self, "high_lora_container") and self.lora_file_var.get():
+            self._load_loras()
 
     def _browse_image(self):
         path = filedialog.askopenfilename(
