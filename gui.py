@@ -42,13 +42,6 @@ def save_config(cfg):
 
 def load_lora_list(filepath):
     """Load LoRA names from a text file (one per line).
-
-    The file should list HIGH variants only. Example:
-        Wan2.2-T2V-4steps-HIGH-rank64-Seko-V2.0
-        wan/SECRET_SAUCE_WAN2.1_14B_fp8
-
-    Lines containing 'HIGH' will auto-pair with a LOW counterpart.
-    Lines without HIGH/LOW are shared LoRAs (used in both passes).
     Empty lines and lines starting with # are skipped.
     """
     loras = []
@@ -60,6 +53,25 @@ def load_lora_list(filepath):
             if name and not name.startswith("#"):
                 loras.append(name)
     return loras
+
+
+# Patterns for deriving LOW name from HIGH name (longest match first)
+HIGH_LOW_PATTERNS = [
+    ("HIGHNOISE", "LOWNOISE"),
+    ("highnoise", "lownoise"),
+    ("HighNoise", "LowNoise"),
+    ("high_noise", "low_noise"),
+    ("HIGH", "LOW"),
+    ("High", "Low"),
+]
+
+
+def derive_low_name(name):
+    """Return the LOW counterpart of a HIGH LoRA name, or None if shared."""
+    for hi, lo in HIGH_LOW_PATTERNS:
+        if hi in name:
+            return name.replace(hi, lo)
+    return None  # Shared LoRA, no HIGH/LOW distinction
 
 
 # ── API ─────────────────────────────────────────────────────────────────────
@@ -358,16 +370,38 @@ class App:
 
         default_str = self.default_strength_var.get()
 
+        # Skip lines that are LOW variants — they'll be auto-derived from HIGH
+        low_patterns = [lo for _, lo in HIGH_LOW_PATTERNS]
+        filtered = []
         for name in names:
-            # HIGH column
+            # Skip if this is a LOW variant whose HIGH counterpart is already in the list
+            is_low = any(lo in name for lo in low_patterns) and not any(
+                hi in name for hi, _ in HIGH_LOW_PATTERNS if hi != "High" or name.count("High") > 0
+            )
+            # Simpler: if line is pure LOW (no HIGH pattern), check if HIGH variant was listed
+            skip = False
+            for hi, lo in HIGH_LOW_PATTERNS:
+                if lo in name and hi not in name:
+                    # This is a LOW-only line. Check if HIGH counterpart is in names.
+                    high_equiv = name.replace(lo, hi)
+                    if high_equiv in names:
+                        skip = True
+                        break
+            if not skip:
+                filtered.append(name)
+
+        for name in filtered:
+            # HIGH column gets the name as-is
             self._add_lora_row(self.high_lora_container, self.high_lora_vars,
                                name, default_str)
-            # LOW column — derive LOW name if HIGH, otherwise same
-            low_name = name.replace("HIGH", "LOW") if "HIGH" in name else name
+            # LOW column gets derived name (or same name if shared)
+            low_name = derive_low_name(name)
+            if low_name is None:
+                low_name = name  # Shared LoRA
             self._add_lora_row(self.low_lora_container, self.low_lora_vars,
                                low_name, default_str)
 
-        self._log(f"Loaded {len(names)} LoRAs")
+        self._log(f"Loaded {len(filtered)} LoRAs")
 
     def _add_lora_row(self, container, var_list, name, default_str):
         row = ttk.Frame(container)
