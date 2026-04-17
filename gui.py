@@ -23,16 +23,43 @@ OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
+DEFAULT_CONFIG = {
+    "api_key": "",
+    "t2v_endpoint": "",
+    "i2v_endpoint": "",
+    "lora_file": "",
+    "mode": "t2v",
+    "prompt": "A golden retriever running through a sunlit meadow",
+    "duration": 3,
+    "seed": "42",
+    "width": 832,
+    "height": 480,
+    "steps": "",
+    "cfg": "",
+    "shift": "",
+    "fps": "",
+    "rife": "",
+    "default_strength": "1.0",
+    # Per-mode LoRA state: {mode: {lora_name: {"enabled": bool, "strength": str}}}
+    "lora_state": {"t2v": {}, "i2v": {}},
+    # Last I2V image path
+    "image_path": "",
+}
+
+
 def load_config():
     if CONFIG_FILE.exists():
         with open(CONFIG_FILE) as f:
-            return json.load(f)
-    return {
-        "api_key": "",
-        "t2v_endpoint": "",
-        "i2v_endpoint": "",
-        "lora_file": "",
-    }
+            loaded = json.load(f)
+        cfg = DEFAULT_CONFIG.copy()
+        cfg.update(loaded)
+        # Ensure nested keys exist
+        if "lora_state" not in cfg or not isinstance(cfg["lora_state"], dict):
+            cfg["lora_state"] = {"t2v": {}, "i2v": {}}
+        cfg["lora_state"].setdefault("t2v", {})
+        cfg["lora_state"].setdefault("i2v", {})
+        return cfg
+    return DEFAULT_CONFIG.copy()
 
 
 def save_config(cfg):
@@ -225,7 +252,7 @@ class App:
         mode_frame = ttk.Frame(main)
         mode_frame.pack(fill="x", pady=(0, 8))
 
-        self.mode_var = tk.StringVar(value="t2v")
+        self.mode_var = tk.StringVar(value=self.config.get("mode", "t2v"))
         ttk.Radiobutton(mode_frame, text="Text to Video (T2V)",
                         variable=self.mode_var, value="t2v",
                         command=self._toggle_mode).pack(side="left", padx=8)
@@ -241,11 +268,11 @@ class App:
                                    insertbackground="#e0e0e0", font=("Segoe UI", 10),
                                    wrap="word", relief="flat", bd=2)
         self.prompt_text.pack(fill="x")
-        self.prompt_text.insert("1.0", "A golden retriever running through a sunlit meadow")
+        self.prompt_text.insert("1.0", self.config.get("prompt", "A golden retriever running through a sunlit meadow"))
 
         # ── I2V Image ───────────────────────────────────────────────────
         self.image_frame = ttk.LabelFrame(main, text="Input Image (I2V)", padding=8)
-        self.image_path_var = tk.StringVar()
+        self.image_path_var = tk.StringVar(value=self.config.get("image_path", ""))
         self._thumb_photo = None  # prevent GC
 
         img_top = ttk.Frame(self.image_frame)
@@ -305,7 +332,7 @@ class App:
         ttk.Button(btn_row, text="All", command=self._select_all_loras).pack(side="left", padx=2)
         ttk.Button(btn_row, text="None", command=self._deselect_all_loras).pack(side="left", padx=2)
         ttk.Label(btn_row, text="str:", foreground="#888").pack(side="right", padx=(4, 0))
-        self.default_strength_var = tk.StringVar(value="1.0")
+        self.default_strength_var = tk.StringVar(value=self.config.get("default_strength", "1.0"))
         ttk.Entry(btn_row, textvariable=self.default_strength_var, width=5).pack(side="right")
         ttk.Label(btn_row, text="Default", foreground="#888").pack(side="right", padx=(0, 4))
 
@@ -318,23 +345,23 @@ class App:
 
         row = 0
         ttk.Label(params, text="Duration (sec):").grid(row=row, column=0, sticky="w", padx=4)
-        self.duration_var = tk.IntVar(value=3)
+        self.duration_var = tk.IntVar(value=self.config.get("duration", 3))
         ttk.Spinbox(params, from_=1, to=30, textvariable=self.duration_var,
                      width=8).grid(row=row, column=1, sticky="w", padx=4)
 
         ttk.Label(params, text="Seed:").grid(row=row, column=2, sticky="w", padx=4)
-        self.seed_var = tk.StringVar(value="42")
+        self.seed_var = tk.StringVar(value=self.config.get("seed", "42"))
         ttk.Entry(params, textvariable=self.seed_var, width=12).grid(
             row=row, column=3, sticky="w", padx=4)
 
         row = 1
         ttk.Label(params, text="Width:").grid(row=row, column=0, sticky="w", padx=4)
-        self.width_var = tk.IntVar(value=832)
+        self.width_var = tk.IntVar(value=self.config.get("width", 832))
         ttk.Entry(params, textvariable=self.width_var, width=8).grid(
             row=row, column=1, sticky="w", padx=4)
 
         ttk.Label(params, text="Height:").grid(row=row, column=2, sticky="w", padx=4)
-        self.height_var = tk.IntVar(value=480)
+        self.height_var = tk.IntVar(value=self.config.get("height", 480))
         ttk.Entry(params, textvariable=self.height_var, width=8).grid(
             row=row, column=3, sticky="w", padx=4)
 
@@ -343,27 +370,27 @@ class App:
         adv.pack(fill="x", pady=(0, 8))
 
         ttk.Label(adv, text="Steps:").grid(row=0, column=0, sticky="w", padx=4)
-        self.steps_var = tk.StringVar(value="")
+        self.steps_var = tk.StringVar(value=self.config.get("steps", ""))
         ttk.Entry(adv, textvariable=self.steps_var, width=8).grid(
             row=0, column=1, sticky="w", padx=4)
 
         ttk.Label(adv, text="CFG:").grid(row=0, column=2, sticky="w", padx=4)
-        self.cfg_var = tk.StringVar(value="")
+        self.cfg_var = tk.StringVar(value=self.config.get("cfg", ""))
         ttk.Entry(adv, textvariable=self.cfg_var, width=8).grid(
             row=0, column=3, sticky="w", padx=4)
 
         ttk.Label(adv, text="Shift:").grid(row=0, column=4, sticky="w", padx=4)
-        self.shift_var = tk.StringVar(value="")
+        self.shift_var = tk.StringVar(value=self.config.get("shift", ""))
         ttk.Entry(adv, textvariable=self.shift_var, width=8).grid(
             row=0, column=5, sticky="w", padx=4)
 
         ttk.Label(adv, text="FPS:").grid(row=1, column=0, sticky="w", padx=4)
-        self.fps_var = tk.StringVar(value="")
+        self.fps_var = tk.StringVar(value=self.config.get("fps", ""))
         ttk.Entry(adv, textvariable=self.fps_var, width=8).grid(
             row=1, column=1, sticky="w", padx=4)
 
         ttk.Label(adv, text="RIFE mult:").grid(row=1, column=2, sticky="w", padx=4)
-        self.rife_var = tk.StringVar(value="")
+        self.rife_var = tk.StringVar(value=self.config.get("rife", ""))
         ttk.Entry(adv, textvariable=self.rife_var, width=8).grid(
             row=1, column=3, sticky="w", padx=4)
 
@@ -419,6 +446,7 @@ class App:
 
         default_str = self.default_strength_var.get()
         pipeline = self.mode_var.get()
+        saved_state = self.config.get("lora_state", {}).get(pipeline, {})
 
         # Skip LOW-only lines whose HIGH counterpart is also in the list
         filtered = []
@@ -437,10 +465,15 @@ class App:
 
         for name in visible:
             low_name = derive_low_name(name) or name
-            # Shared vars — HIGH and LOW checkboxes/strengths are linked
-            auto_on = is_default_enabled(name, pipeline)
+            # Prefer saved state; fall back to defaults
+            if name in saved_state:
+                auto_on = saved_state[name].get("enabled", False)
+                strength_val = saved_state[name].get("strength", default_str)
+            else:
+                auto_on = is_default_enabled(name, pipeline)
+                strength_val = default_str
             enabled = tk.BooleanVar(value=auto_on)
-            strength = tk.StringVar(value=default_str)
+            strength = tk.StringVar(value=strength_val)
             self._add_lora_row(self.high_lora_container, self.high_lora_vars,
                                name, enabled, strength)
             self._add_lora_row(self.low_lora_container, self.low_lora_vars,
@@ -536,6 +569,28 @@ class App:
         self.config["t2v_endpoint"] = self.t2v_var.get()
         self.config["i2v_endpoint"] = self.i2v_var.get()
         self.config["lora_file"] = self.lora_file_var.get()
+        self.config["mode"] = self.mode_var.get()
+        self.config["prompt"] = self.prompt_text.get("1.0", "end").strip()
+        self.config["duration"] = self.duration_var.get()
+        self.config["seed"] = self.seed_var.get()
+        self.config["width"] = self.width_var.get()
+        self.config["height"] = self.height_var.get()
+        self.config["steps"] = self.steps_var.get()
+        self.config["cfg"] = self.cfg_var.get()
+        self.config["shift"] = self.shift_var.get()
+        self.config["fps"] = self.fps_var.get()
+        self.config["rife"] = self.rife_var.get()
+        self.config["default_strength"] = self.default_strength_var.get()
+        self.config["image_path"] = self.image_path_var.get()
+        # Save current mode's LoRA state (enabled + strength per LoRA)
+        mode = self.mode_var.get()
+        lora_state = {}
+        for name, enabled, strength in self.high_lora_vars:
+            lora_state[name] = {
+                "enabled": enabled.get(),
+                "strength": strength.get(),
+            }
+        self.config["lora_state"][mode] = lora_state
         save_config(self.config)
         self._log("Settings saved.")
 
