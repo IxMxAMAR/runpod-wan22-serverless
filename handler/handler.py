@@ -356,30 +356,38 @@ def collect_results(prompt_id):
         raise RuntimeError(f"No history found for prompt {prompt_id}")
 
     outputs = history[prompt_id].get("outputs", {})
-    videos = []
 
+    # Prefer the slow-motion video node for the current pipeline
+    slowmo_node_id = NODE_IDS.get(PIPELINE_TYPE, {}).get("video_combine_slowmo")
+
+    def fetch_video(gif):
+        video_resp = requests.get(
+            f"{COMFY_BASE_URL}/view",
+            params={
+                "filename": gif["filename"],
+                "subfolder": gif.get("subfolder", ""),
+                "type": gif.get("type", "output"),
+            },
+        )
+        video_resp.raise_for_status()
+        return {
+            "filename": gif["filename"],
+            "type": "base64",
+            "data": base64.b64encode(video_resp.content).decode(),
+        }
+
+    # First pass: try to get the slow-mo video specifically
+    if slowmo_node_id and slowmo_node_id in outputs:
+        gifs = outputs[slowmo_node_id].get("gifs", [])
+        if gifs:
+            return {"videos": [fetch_video(gifs[0])]}
+
+    # Fallback: return the first available video
     for node_id, node_output in outputs.items():
-        if "gifs" in node_output:
-            for gif in node_output["gifs"]:
-                video_resp = requests.get(
-                    f"{COMFY_BASE_URL}/view",
-                    params={
-                        "filename": gif["filename"],
-                        "subfolder": gif.get("subfolder", ""),
-                        "type": gif.get("type", "output"),
-                    },
-                )
-                video_resp.raise_for_status()
-                videos.append({
-                    "filename": gif["filename"],
-                    "type": "base64",
-                    "data": base64.b64encode(video_resp.content).decode(),
-                })
-            # Only return the first video to stay under RunPod's response size limit
-            if videos:
-                return {"videos": [videos[0]]}
+        for gif in node_output.get("gifs", []):
+            return {"videos": [fetch_video(gif)]}
 
-    return {"videos": videos}
+    return {"videos": []}
 
 
 # ── Request Routing ─────────────────────────────────────────────────────────
