@@ -1,7 +1,7 @@
 # WAN 2.2 LoRA List
 # List HIGH variants only — LOW counterparts auto-derived in the GUI's LOW column
 # Lines without HIGH/LOW are shared (used in both HIGH and LOW passes)
-# LOW-only entries are filtered out (the HIGH entry's LOW counterpart is auto-derived)
+# LOW-only entries whose HIGH counterpart is already listed get filtered out
 
 # ── Shared / Base LoRAs (both loaders) ──────────────────────────────────────
 SECRET_SAUCE_WAN2.1_14B_fp8
@@ -11,10 +11,16 @@ Wan2.1_T2V_14B_FusionX_LoRA
 Wan2.1_I2V_14B_FusionX_LoRA
 
 # ── Lightning (4-step acceleration) ─────────────────────────────────────────
+# Pick ONE T2V + ONE I2V per generation — enabling multiple Lightnings degrades quality
+# Original Seko
 Wan2.2-T2V-4steps-HIGH-rank64-Seko-V2.0
 Wan2.2-I2V-HIGH-4steps-lora-rank64-Seko-V1
+# Newer lightx2v distillations — Dec 2025 (T2V) / Oct 2025 (I2V), recommended upgrade
+wan2.2_t2v_A14b_high_noise_lora_rank64_lightx2v_4step_1217
+wan2.2_i2v_A14b_high_noise_lora_rank64_lightx2v_4step_1022
 
-# ── Content LoRAs (HIGH variants only, LOW auto-derived) ───────────────────
+# ── Content LoRAs: HIGH+LOW pairs (HIGH listed, LOW auto-derived) ──────────
+# -- Original collection --
 wan2.2_t2v_highnoise_pov_missionary_v1.0
 wan2.2_i2v_highnoise_pov_missionary_v1.0
 CumShot-High
@@ -30,7 +36,31 @@ mql_casting_sex_doggy_kneel_diagonally_behind_vagina_wan22_i2v_v1_high_noise
 mql_wink_wan22_i2v_v1_high_noise
 mql_casting_sex_reverse_cowgirl_lie_front_vagina_wan22_i2v_v1_high_noise
 KISSHIGH
+# -- New pairs (downloaded + extracted Apr 2026) --
+Instagirlv2.5-HIGH
+CubeyAI-NSFW-Wan22-HIGH-v08a
+BigCockOral-Wan22-I2V-HIGH
+Bouncy-Forward-Bends-Wan22-I2V-HIGH
+Sigma-Face-Expression-Wan22-HIGH
+Wan-Cowgirl-T2V-HIGH
+Wan22-Piledriver-I2V-HIGH
+Wan22-BreastPlay-I2V-HIGH
+POV-Missionary-Insertion-Wan22-I2V-HIGH
 
-# ── Single-variant (no HIGH/LOW counterpart, used in both loaders) ─────────
+# ── Single-variant (no HIGH/LOW counterpart, applied to both loaders) ──────
 Fingering-T2V
 Fingering-I2V
+Instamodel_1
+NSFW-Bundle-SM-Wan22-T2V
+CubeyAI-General-NSFW-Wan22
+
+# ── Edge cases (needs GUI pattern fix to auto-derive LOW) ──────────────────
+# These have lowercase '-high-' / '-low-' naming which isn't in HIGH_LOW_PATTERNS.
+# Uncomment the HIGH entry + add ("-high-", "-low-") to gui.py HIGH_LOW_PATTERNS,
+# OR list both HIGH + LOW explicitly here.
+#wan2.2-i2v-high-oral-insertion-v1.0
+
+# ── Single-variant (LOW-labeled but works as universal) ────────────────────
+# SingularUnity Twerk ships as one file; labeled LOW but applies to both passes.
+# Uncomment to include — both HIGH and LOW loaders will get the same file.
+#SingularUnity-Twerk-Wan21-I2V-LOW

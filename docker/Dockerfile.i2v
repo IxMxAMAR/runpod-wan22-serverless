@@ -2,7 +2,9 @@
 # Self-contained: base + custom nodes + shared models + I2V UNETs
 FROM runpod/worker-comfyui:latest-base
 
-# Install custom nodes via comfy registry
+# Install custom nodes via comfy registry.
+# KJNodes gives us SkipLayerGuidanceWanVideo + TorchCompileModel nodes.
+# WanVideoWrapper pulled in for future advanced features (TeaCache, blockswap).
 RUN comfy-node-install \
     rgthree-comfy \
     comfyui-videohelpersuite \
@@ -10,7 +12,14 @@ RUN comfy-node-install \
     comfyui-frame-interpolation \
     comfyui_essentials \
     comfyui-image-selector \
-    basic_data_handling
+    basic_data_handling \
+    comfyui-kjnodes \
+    comfyui-wanvideowrapper
+
+# SageAttention 2 + Triton for ~40–100% inference speedup on 4090/L40S/H100.
+# Installed via pip; activated by the --use-sage-attention flag passed to ComfyUI.
+RUN pip install --no-cache-dir triton sageattention || \
+    echo "WARNING: sageattention install failed — worker will fall back to SDPA"
 
 # Download shared models
 # VAE
@@ -60,3 +69,13 @@ COPY handler/handler.py /handler.py
 ENV TEMPLATE_DIR=/comfyui/templates
 ENV RUNPOD_VOLUME_PATH=/runpod-volume
 ENV PIPELINE_TYPE=i2v
+
+# Persist Triton / torch.compile cache on the network volume so compiled kernels
+# survive worker scale-down. First compile is still ~90 s; subsequent cold starts
+# reuse the cache. The directory is created lazily on first use.
+ENV TRITON_CACHE_DIR=/runpod-volume/.triton
+ENV TORCHINDUCTOR_CACHE_DIR=/runpod-volume/.inductor
+
+# ComfyUI flags — activate SageAttention 2 + skip the preview pass (saves 2–5s/gen).
+# worker-comfyui base reads COMFY_ARGS in its start script.
+ENV COMFY_ARGS="--use-sage-attention --preview-method none"
