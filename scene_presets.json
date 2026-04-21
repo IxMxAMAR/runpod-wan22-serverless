@@ -1,0 +1,508 @@
+{
+  "_notes": [
+    "Scene presets — civitai-researched (Apr 2026). Trigger words are creator-verified where possible.",
+    "Each preset stacks 1-3 content LoRAs + optional style/expression overlays.",
+    "Stacking rules: max 3 content LoRAs, combined strength ≤ 2.5, HIGH pairs with HIGH / LOW with LOW.",
+    "Base LoRAs (SECRET_SAUCE, FusionX, CubeyAI-General) assumed always on — NOT counted in the stack.",
+    "Speed LoRAs (Lightning/lightx2v/Seko) managed by Quality preset — untouched by scene selection.",
+    "Instagirl at 0.5-0.7 stackable for realism — add manually.",
+    "CRITICAL: LocalOptima LoRAs (Oral-Ins, CumShot) explicitly INCOMPATIBLE with LightX2V — creator warning.",
+    "CRITICAL: Piledriver fails on large/veiny penises — don't stack BigCockOral under it.",
+    "Edit `name_contains` substrings or strengths to taste. [BRACKET] placeholders get filled by user."
+  ],
+  "presets": [
+    {
+      "id": "pov_missionary_classic",
+      "name": "POV Missionary (Classic)",
+      "category": "POV Position",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "pov_missionary_v1.0",
+          "strength": 0.9,
+          "trigger": "missionary sex, with her legs spread"
+        },
+        {
+          "name_contains": "POV-Missionary-Insertion",
+          "strength": 0.8,
+          "trigger": "inserting his penis into her vagina"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she lies on her back on a rumpled bed, legs spread wide, missionary sex, A man is thrusting his penis back and forth inside her vagina, the man takes his penis with his hand and inserts it, movement is fast with bouncing medium sized breasts, POV from above looking down, warm bedside lamp light, shallow depth of field, cinematic 4k, hyper-realistic skin detail",
+      "caveats": "Use Lightning I2V @ 8 steps / CFG 1 / Euler. Keep speed LoRAs in LOW pass only."
+    },
+    {
+      "id": "cowgirl_bounce_detail",
+      "name": "Cowgirl Bounce + Anatomy",
+      "category": "Position",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "Wan-Cowgirl-T2V",
+          "strength": 0.9,
+          "trigger": "cowgirl sex"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        },
+        {
+          "name_contains": "Wan22-BreastPlay",
+          "strength": 0.5,
+          "trigger": "her breasts bounce"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], a woman is straddling a man and having sex with him, cowgirl sex, she bounces up and down on top of the man, you can see her bouncing up and down on the man's erect penis, her breasts bounce and jiggle, 45 degree front angle, golden hour window light through sheer curtains, dust motes, tripod static camera, 4k realism",
+      "caveats": "HIGH+LOW required together per creator dtwr434. Preview reference used lightning LoRAs."
+    },
+    {
+      "id": "doggy_full_stack",
+      "name": "Doggystyle Forward-Bend Physics",
+      "category": "Position",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "Wan22-T2V-DoggyStyle",
+          "strength": 0.9,
+          "trigger": "doggystyle from behind"
+        },
+        {
+          "name_contains": "Bouncy-Forward-Bends",
+          "strength": 0.5,
+          "trigger": "bends forward to show her cleavage"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she is on all fours on the bed naked ass in the air, bends forward to show her cleavage, a man is thrusting his penis inside her from behind, her hips jolt with each impact, her breasts bounce and jiggle, side profile camera, dim lamp lit bedroom, motion blur on hips, 4k photorealistic",
+      "caveats": "Square output (480² or 720²) most consistent on Doggy Slider. Best-guess LoRA match."
+    },
+    {
+      "id": "reverse_cowgirl_mql",
+      "name": "Reverse Cowgirl (MQ Lab)",
+      "category": "Position",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "mql_casting_sex_reverse_cowgirl",
+          "strength": 0.9,
+          "trigger": "mqlspn_a reverse cowgirl"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        },
+        {
+          "name_contains": "Bouncy-Forward-Bends",
+          "strength": 0.4,
+          "trigger": "bouncing"
+        }
+      ],
+      "prompt": "mqlspn_a, [SUBJECT_DESCRIPTION], she sits backwards on a man facing away from him lying forward on his legs, his penis is inside her vagina from below, she rocks her hips rhythmically, low angle from behind showing her ass curve, overcast window light, naturalistic, 24fps cinematic",
+      "caveats": "MQ Lab token mqlspn_a — verified on sibling 1923354. FPS 16 if motion too fast."
+    },
+    {
+      "id": "mql_doggy_diagonal",
+      "name": "MQ Lab Diagonal Doggy",
+      "category": "Position",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "mql_casting_sex_doggy_kneel",
+          "strength": 0.9,
+          "trigger": "mqlspn_a doggy kneeling diagonal from behind"
+        },
+        {
+          "name_contains": "Bouncy-Forward-Bends",
+          "strength": 0.5,
+          "trigger": "breasts bouncing"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "mqlspn_a, [SUBJECT_DESCRIPTION], she kneels diagonally on the bed, a man kneels behind her at an angle thrusting his penis into her vagina from behind, breasts bouncing, diagonal rear 45 angle, single softbox key light, wide aperture, 4k realism",
+      "caveats": "MQ Lab family-shared token. Increase steps if blurry."
+    },
+    {
+      "id": "piledriver_hard",
+      "name": "Piledriver Deep Thrust",
+      "category": "Position",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "Wan22-Piledriver",
+          "strength": 0.95,
+          "trigger": "p1ledriv3r"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "p1ledriv3r, [SUBJECT_DESCRIPTION], she is inverted on her shoulders with her legs folded back, a man stands over her thrusting his penis down into her vagina, close-up side angle, harsh overhead light with deep shadow, sweat sheen on skin, shallow DOF, 4k",
+      "caveats": "DO NOT stack BigCockOral — piledriver fails on large/veiny penises (becomes bendy/sausage-like)."
+    },
+    {
+      "id": "pov_bj_big_cock",
+      "name": "POV Big Cock Blowjob",
+      "category": "Oral",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "BigCockOral-Wan22-I2V",
+          "strength": 1.0,
+          "trigger": "he has a giant penis, she strokes his penis back and forth, she spits on the penis, she starts giving him a blowjob"
+        }
+      ],
+      "prompt": "a man is lying down on his back and a woman is kneeling between his legs, he has a giant penis, [SUBJECT_DESCRIPTION], she strokes his penis back and forth with her hands, she spits on the penis, she starts giving him a blowjob, POV from man's chest looking down, bedroom tungsten lamp light, close-up on her face, 4k",
+      "caveats": "Needs FULL verbose trigger phrase — fires weakly below 0.8. 6 steps / lightx2v @ 3 HIGH / 1.5 LOW / CFG 1 Euler Ancestral."
+    },
+    {
+      "id": "deepthroat_rough",
+      "name": "Rough Deepthroat Facefuck",
+      "category": "Oral",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "BigCockOral-Wan22-I2V",
+          "strength": 1.0,
+          "trigger": "he is face fucking her, she is grabbing his penis, deepthroat blowjob"
+        }
+      ],
+      "prompt": "a woman is kneeling in front of a man and leaning forward towards him, he has a giant penis, he is face fucking her, she is grabbing his penis, deepthroat blowjob, [SUBJECT_DESCRIPTION], tears streaking mascara, side profile handheld camera, garage overhead bulb light, shallow DOF, 4k gritty realism"
+    },
+    {
+      "id": "gentle_oral_insertion",
+      "name": "Gentle Oral Insertion",
+      "category": "Oral",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "oral-insertion",
+          "strength": 0.9,
+          "trigger": "A man appears and she sucks his penis"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.3,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she kneels before him on soft carpet, A man appears and she sucks his penis, slow deliberate motion, her hand gently curled at the base, soft window light from the left, medium shot eye-level, desaturated tones, 4k intimate realism",
+      "caveats": "DO NOT stack LightX2V — creator explicitly flagged quality loss. CFG ~3.5 HIGH / 5-7 LOW."
+    },
+    {
+      "id": "oral_to_cumshot_sequence",
+      "name": "Oral → Facial Cumshot Sequence",
+      "category": "Climax",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "oral-insertion",
+          "strength": 0.8,
+          "trigger": "A man appears and she sucks his penis"
+        },
+        {
+          "name_contains": "CumShot",
+          "strength": 0.9,
+          "trigger": "A man cums on her"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she kneels in front of him, A man appears and she sucks his penis, then pulls back with her mouth open, A man cums on her face, tongue out, man's hand on his penis in frame, 16:9 aspect, low angle, ambient bedside lamp, cinematic 4k",
+      "caveats": "Cumshot scales with aspect ratio — stick to 16:9. CFG 3.5 HIGH / 7 LOW. NO LightX2V."
+    },
+    {
+      "id": "missionary_climax_sequence",
+      "name": "Missionary → Cumshot Finish",
+      "category": "Climax",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "pov_missionary_v1.0",
+          "strength": 0.8,
+          "trigger": "missionary sex"
+        },
+        {
+          "name_contains": "CumShot",
+          "strength": 0.9,
+          "trigger": "A man cums on her"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], missionary sex on a bed, he pulls out at the climax, A man cums on her belly and breasts, man's hand on his penis in frame, 16:9 low angle, warm bedside lamp light, 24fps slow motion, 4k cinematic",
+      "caveats": "CumShot fires best when man already in frame with hand on penis. CFG 3.5 HIGH / 7 LOW. NO LightX2V."
+    },
+    {
+      "id": "dildo_ride_full",
+      "name": "Dildo Ride Solo",
+      "category": "Toys",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "Wan22-T2V-DildoRide",
+          "strength": 0.9,
+          "trigger": "she rides a dildo, moving her body up and down as the dildo slides in and out of her vagina"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.5,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she rides a dildo, moving her body up and down as the dildo slides in and out of her vagina, kneeling position on a loft floor, viewed from the front, volumetric window light, cinematic color grade, 4k realism, slow rhythmic motion",
+      "caveats": "Supports front/behind/high/low angle — swap 'viewed from' clause per angle."
+    },
+    {
+      "id": "dildo_closeup_macro",
+      "name": "Dildo Closeup Macro",
+      "category": "Toys",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "wan_dildo_closeup",
+          "strength": 0.9,
+          "trigger": "dildo inserted closeup"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.6,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], extreme close-up on her vagina, a dildo slides in and out slowly, glistening wetness, labia spread, macro lens 50mm f2.8, soft directional key light from right, detailed skin pores, 4k hyper-detail",
+      "caveats": "No confirmed civitai page for this LoRA — test at 0.7 first, raise if action weak."
+    },
+    {
+      "id": "dildo_fullbody_solo",
+      "name": "Dildo Full-Body Solo",
+      "category": "Toys",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "wan_dildo_fullbody",
+          "strength": 0.9,
+          "trigger": "she uses a dildo on herself"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], naked on her back on black silk sheets, she uses a dildo on herself sliding it in and out of her vagina, legs spread bent at the knees, low side angle, single practical lamp with deep shadow, 24fps slow motion, 4k",
+      "caveats": "Best-guess LoRA — no confirmed civitai page."
+    },
+    {
+      "id": "double_penetration_behind",
+      "name": "Double Penetration (Behind)",
+      "category": "Multi-partner",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "Double-Penetration",
+          "strength": 0.9,
+          "trigger": "dpbeh1nd"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "dpbeh1nd, [SUBJECT_DESCRIPTION], she is on top of one man facing forward while another man penetrates her from behind, two penises inside her, her mouth slightly open panting, medium shot 45 degree angle, bedroom tungsten light, slow choreographed thrust, 4k realism",
+      "caveats": "Lightx2v @ 2.2 strength HIGH / 0.8 LOW, 8 steps (4/4), CFG 1, Shift 8, Euler Beta57. Alt triggers: dpfr0nt, dpstand1ng."
+    },
+    {
+      "id": "double_penetration_front",
+      "name": "Double Penetration (Cowgirl-DP Front)",
+      "category": "Multi-partner",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "Double-Penetration",
+          "strength": 0.9,
+          "trigger": "dpfr0nt"
+        },
+        {
+          "name_contains": "Wan-Cowgirl-T2V",
+          "strength": 0.5,
+          "trigger": "cowgirl sex"
+        }
+      ],
+      "prompt": "dpfr0nt, [SUBJECT_DESCRIPTION], cowgirl sex on one man while second man penetrates from front, both penises inside her, her breasts bouncing, low angle hero shot, warm sunset light through window blinds, sharp focus on her face, 4k cinematic",
+      "caveats": "Shift 8 / Euler Beta57. Don't pair with Piledriver (positional conflict)."
+    },
+    {
+      "id": "fingering_solo_closeup",
+      "name": "Solo Fingering Closeup",
+      "category": "Solo",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "Fingering-I2V",
+          "strength": 0.9,
+          "trigger": "She inserts two fingers into her pussy. She masturbates by sliding her fingers in and out of her pussy"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.5,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], a nude woman lying on a bed, she inserts two fingers into her pussy, she masturbates by sliding her fingers in and out of her pussy, her other hand gripping the sheet, close-up from her hip level, soft morning window light, 4k intimate realism, slow breathing rhythm",
+      "caveats": "Creator explicitly recommends PussyLoRA at 0.4-0.6 to prevent vaginal distortion during finger motion."
+    },
+    {
+      "id": "breast_play_grab",
+      "name": "Breast Play Self-Grab",
+      "category": "Foreplay",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "Wan22-BreastPlay",
+          "strength": 0.9,
+          "trigger": "she grabs her breasts with both hands and pinches her nipples with her fingers"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], topless in front of a bathroom mirror, she grabs her breasts with both hands and pinches her nipples with her fingers, warm vanity lights, steam on glass, medium shot, slow deliberate pace, 4k",
+      "caveats": "v2 file fixed face-changing bug from v1 — verify your file is v2."
+    },
+    {
+      "id": "breast_play_partner",
+      "name": "Partner Breast Grab + Kiss",
+      "category": "Foreplay",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "Wan22-BreastPlay",
+          "strength": 0.9,
+          "trigger": "the man is grabbing her breast"
+        },
+        {
+          "name_contains": "KISS",
+          "strength": 0.6,
+          "trigger": "They are tongue kissing with passion"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she and a man tangled on a couch, the man is grabbing her breast, they are tongue kissing with passion, his hand squeezing firmly, medium shot from the side, soft table lamp backlight, 4k sensual realism"
+    },
+    {
+      "id": "kissing_bedroom",
+      "name": "Passionate Kissing Scene",
+      "category": "Foreplay",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "KISS",
+          "strength": 0.9,
+          "trigger": "They are kissing with passion"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], a couple on a bed at night, they are kissing with passion, they are tongue kissing with passion, they feel each others bodies, hands roaming, close-up profile shot, warm low-key sidelight, shallow DOF, 4k romantic",
+      "caveats": "Use Euler + lightx2v per creator. Simple prompt scales better than complex."
+    },
+    {
+      "id": "twerk_v3",
+      "name": "Twerk V3 (Crypswolf)",
+      "category": "Movement",
+      "pipeline": "both",
+      "loras": [
+        {
+          "name_contains": "V3TWERK",
+          "strength": 0.9,
+          "trigger": "twuuur"
+        },
+        {
+          "name_contains": "Bouncy-Forward-Bends",
+          "strength": 0.4,
+          "trigger": "ass bouncing"
+        }
+      ],
+      "prompt": "twuuur, [SUBJECT_DESCRIPTION], she bends forward and twerks rhythmically, glutes contract in a fluid rhythm, ass bouncing, behind camera angle waist-level, neon nightclub backlight magenta and cyan, 24fps steady, 4k",
+      "caveats": "twuuur is the exact token — type verbatim."
+    },
+    {
+      "id": "twerk_realism_physics",
+      "name": "Twerk Realism (SingularUnity)",
+      "category": "Movement",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "SingularUnity-Twerk",
+          "strength": 0.8,
+          "trigger": "Dynamic twerk emphasizing elastic thigh and glute deformation"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], a woman wearing a bright green sports bra and boyshorts, Dynamic twerk emphasizing elastic thigh and glute deformation, visible muscle contractions and releases, gym mirror background, overhead LED panel, 3/4 rear angle, 4k",
+      "caveats": "WAN 2.1 base — treat as LOW-only when stacking on 2.2."
+    },
+    {
+      "id": "wink_tease",
+      "name": "Wink Tease (Face Only)",
+      "category": "Expression",
+      "pipeline": "i2v",
+      "loras": [
+        {
+          "name_contains": "mql_wink",
+          "strength": 0.9,
+          "trigger": "A woman winks once"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], extreme close-up on her face, A woman winks once with her left eye, playful smirk, natural makeup, soft beauty-dish light from slightly above, shallow DOF blurring background, 4k skin texture detail",
+      "caveats": "Model can only wink LEFT eye (known limitation). FPS 16 if too fast."
+    },
+    {
+      "id": "pussy_macro_anatomy",
+      "name": "Pussy Macro (Anatomy Showcase)",
+      "category": "Anatomy",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.9,
+          "trigger": "vagina, she is spreading her labia with her fingers"
+        },
+        {
+          "name_contains": "Fingering-T2V",
+          "strength": 0.5,
+          "trigger": "spreading her labia"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], extreme macro on her vagina, she is spreading her labia with her fingers, [thick pubic hair | shaved | trimmed], shot from below looking up, directional softbox light, glistening wetness, 4k macro photography, shallow DOF",
+      "caveats": "Trigger word is 'vagina' (never 'pussy' — not in training data). T2V preferred; creator didn't test I2V."
+    },
+    {
+      "id": "cubeyai_general_base",
+      "name": "CubeyAI General NSFW Base Scene",
+      "category": "Position",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "CubeyAI-NSFW-Wan22",
+          "strength": 0.9,
+          "trigger": "nsfwsks [or descriptive]"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], explicit sex scene [SCENE_DESCRIPTION], penis goes in and out of vagina rhythmically, natural motion, warm practical lamp light, handheld cinematic 4k, realistic skin",
+      "caveats": "Underbaked — batch 4 seeds, some will be bad. Works 480p I2V but NOT 720p I2V. Creator recommends descriptive prompting over 'nsfwsks' token."
+    }
+  ]
+}

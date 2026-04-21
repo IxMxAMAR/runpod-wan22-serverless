@@ -19,8 +19,56 @@ except ImportError:
 # ── Config ──────────────────────────────────────────────────────────────────
 
 CONFIG_FILE = Path(__file__).parent / "gui_config.json"
+SCENE_PRESETS_FILE = Path(__file__).parent / "scene_presets.json"
 OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+
+def load_scene_presets():
+    """Read scene_presets.json. Returns [] if missing or malformed."""
+    if not SCENE_PRESETS_FILE.exists():
+        return []
+    try:
+        data = json.loads(SCENE_PRESETS_FILE.read_text(encoding="utf-8"))
+        return data.get("presets", [])
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+# Base LoRAs that should stay untouched by scene presets (they're general
+# quality enhancers, not scene-specific content). Substring match, case-insensitive.
+BASE_LORA_PATTERNS = (
+    "secret_sauce",
+    "fusionx",
+    "cubeyai",
+    "instagirl",
+    "instamodel",
+    "nsfw-bundle",
+)
+
+
+def is_base_lora(name):
+    lower = name.lower()
+    return any(p in lower for p in BASE_LORA_PATTERNS)
+
+
+# Resolution presets — ordered by commonality for WAN 2.2 14B.
+# Dims are divisible by 16 (latent constraint). 480p = fast, 720p = higher quality.
+RESOLUTION_PRESETS = [
+    ("16:9 landscape — 832×480 (fast default)", 832, 480),
+    ("9:16 vertical — 480×832 (TikTok/Reels)", 480, 832),
+    ("1:1 square — 512×512", 512, 512),
+    ("1:1 square — 720×720 (HD)", 720, 720),
+    ("4:3 — 640×480", 640, 480),
+    ("3:4 — 480×640", 480, 640),
+    ("3:2 — 768×512", 768, 512),
+    ("2:3 — 512×768", 512, 768),
+    ("16:9 HD — 1280×720 (slow)", 1280, 720),
+    ("9:16 HD — 720×1280 (vertical HD, slow)", 720, 1280),
+    ("21:9 ultrawide — 896×384", 896, 384),
+    ("9:21 ultratall — 384×896", 384, 896),
+]
+RESOLUTION_CUSTOM = "Custom (edit W/H manually)"
 
 
 DEFAULT_CONFIG = {
@@ -121,6 +169,46 @@ DEFAULT_ENABLED = {
 }
 
 
+# Speed-LoRA detection — Lightning / step-distillation LoRAs that accelerate
+# sampling. These get their own collapsible UI section so the main LoRA lists
+# stay focused on content.
+SPEED_PATTERNS = (
+    "lightning",
+    "lightx2v",
+    "light_2",
+    "4steps",
+    "4-step",
+    "_4step_",
+    "cfg_step_distill",
+    "seko",
+)
+
+
+def is_speed_lora(name):
+    lower = name.lower()
+    return any(p in lower for p in SPEED_PATTERNS)
+
+
+# Quality preset → preferred Lightning LoRA per pipeline. On preset change the
+# GUI auto-enables the matching Lightning and disables the others. The handler's
+# lightning_strength_high/low retune (0.7 / 1.0 for quality+hero) runs server-side,
+# so the GUI just manages which Lightning is active.
+PRESET_LIGHTNING = {
+    "fast": {
+        "t2v": "Seko-V2.0",
+        "i2v": "Seko-V1",
+    },
+    "quality": {
+        "t2v": "lightx2v_4step_1217",
+        "i2v": "lightx2v_4step_1022",
+    },
+    "hero": {
+        "t2v": "lightx2v_4step_1217",
+        "i2v": "lightx2v_4step_1022",
+    },
+}
+
+
 def lora_for_pipeline(name, pipeline):
     """Return True if this LoRA should appear in the given pipeline's list.
 
@@ -203,6 +291,23 @@ class App:
         style.map("Accent.TButton", background=[("active", "#e94560")])
         style.configure("LoRA.TCheckbutton", background="#16213e", foreground="#e0e0e0")
 
+        # Combobox readonly state needs explicit color mapping — clam theme's
+        # defaults produce unreadable light-on-light text in readonly mode.
+        style.configure("TCombobox", fieldbackground="#16213e", background="#0f3460",
+                        foreground="#e0e0e0", arrowcolor="#a0a0c0")
+        style.map("TCombobox",
+                   fieldbackground=[("readonly", "#16213e"), ("disabled", "#16213e")],
+                   foreground=[("readonly", "#e0e0e0"), ("disabled", "#888")],
+                   selectbackground=[("readonly", "#0f3460")],
+                   selectforeground=[("readonly", "#ffffff")],
+                   arrowcolor=[("readonly", "#a0a0c0")])
+        # The dropdown popup is a raw tk Listbox — theme it via option database
+        self.root.option_add("*TCombobox*Listbox.Background", "#16213e")
+        self.root.option_add("*TCombobox*Listbox.Foreground", "#e0e0e0")
+        self.root.option_add("*TCombobox*Listbox.selectBackground", "#533483")
+        self.root.option_add("*TCombobox*Listbox.selectForeground", "#ffffff")
+        self.root.option_add("*TCombobox*Listbox.font", "Segoe\\ UI 10")
+
         self._build_ui()
 
     def _build_ui(self):
@@ -222,9 +327,25 @@ class App:
         self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # Mouse wheel scrolling
-        self.canvas.bind_all("<MouseWheel>",
-                             lambda e: self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        # Mouse wheel scrolling. Skip if the event came from:
+        #   - a combobox popup (path contains 'popdown' — ttk internal name)
+        #   - a self-scrolling widget (Listbox, Text)
+        #   - a separate Toplevel (defensive, catches any other popup)
+        # Without these guards, bind_all fires on every wheel event, causing
+        # the popup list and the outer canvas to scroll simultaneously.
+        def _on_canvas_wheel(e):
+            w = e.widget
+            try:
+                if "popdown" in str(w):
+                    return
+                if w.winfo_class() in ("Listbox", "Text"):
+                    return
+                if w.winfo_toplevel() is not self.root:
+                    return
+            except tk.TclError:
+                pass
+            self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+        self.canvas.bind_all("<MouseWheel>", _on_canvas_wheel)
 
         main = self.main
 
@@ -277,17 +398,22 @@ class App:
 
         ttk.Label(presets, text="Quality:").grid(row=0, column=0, sticky="w", padx=4)
         self.quality_preset_var = tk.StringVar(value=self.config.get("quality_preset", ""))
-        ttk.Combobox(presets, textvariable=self.quality_preset_var,
+        self.quality_combo = ttk.Combobox(presets, textvariable=self.quality_preset_var,
                      values=["", "fast", "quality", "hero"],
-                     state="readonly", width=12).grid(row=0, column=1, sticky="w", padx=4)
-        ttk.Label(presets, text="(sampler, CFG, steps, SLG)",
+                     state="readonly", width=12)
+        self.quality_combo.grid(row=0, column=1, sticky="w", padx=4)
+        ttk.Label(presets, text="(sampler, CFG, steps, SLG, Lightning)",
                   foreground="#888").grid(row=0, column=2, sticky="w", padx=4)
+        # Auto-manage Speed LoRAs when preset changes
+        self.quality_preset_var.trace_add(
+            "write", lambda *_: self._apply_preset_lightning())
 
         ttk.Label(presets, text="Style:").grid(row=1, column=0, sticky="w", padx=4)
         self.style_preset_var = tk.StringVar(value=self.config.get("style_preset", ""))
-        ttk.Combobox(presets, textvariable=self.style_preset_var,
+        self.style_combo = ttk.Combobox(presets, textvariable=self.style_preset_var,
                      values=["", "realistic", "cinematic_film", "pov_handheld"],
-                     state="readonly", width=16).grid(row=1, column=1, sticky="w", padx=4)
+                     state="readonly", width=16)
+        self.style_combo.grid(row=1, column=1, sticky="w", padx=4)
         ttk.Label(presets, text="(appends camera/lighting tokens to prompt)",
                   foreground="#888").grid(row=1, column=2, sticky="w", padx=4)
 
@@ -297,6 +423,22 @@ class App:
             row=2, column=0, columnspan=2, sticky="w", padx=4, pady=(4, 0))
         ttk.Label(presets, text="(adds ~10% gen time)",
                   foreground="#888").grid(row=2, column=2, sticky="w", padx=4, pady=(4, 0))
+
+        # ── Scene preset ────────────────────────────────────────────────
+        self.scene_presets = load_scene_presets()
+        ttk.Label(presets, text="Scene:").grid(row=3, column=0, sticky="w", padx=4, pady=(8, 0))
+        self.scene_preset_var = tk.StringVar(value="")
+        self.scene_preset_combo = ttk.Combobox(
+            presets, textvariable=self.scene_preset_var,
+            values=[""] + [self._scene_label(p) for p in self.scene_presets],
+            state="readonly", width=40)
+        self.scene_preset_combo.grid(row=3, column=1, columnspan=2, sticky="w",
+                                      padx=4, pady=(8, 0))
+        ttk.Label(presets, text="(picks content LoRAs + seeds the prompt)",
+                  foreground="#888").grid(row=4, column=1, columnspan=2,
+                                           sticky="w", padx=4)
+        self.scene_preset_var.trace_add(
+            "write", lambda *_: self._apply_scene_preset())
 
         # ── Prompt ──────────────────────────────────────────────────────
         prompt_frame = ttk.LabelFrame(main, text="Prompt", padding=8)
@@ -374,6 +516,43 @@ class App:
         ttk.Entry(btn_row, textvariable=self.default_strength_var, width=5).pack(side="right")
         ttk.Label(btn_row, text="Default", foreground="#888").pack(side="right", padx=(0, 4))
 
+        # ── Speed LoRAs (collapsible) ───────────────────────────────────
+        # Lightning / step-distillation LoRAs live here so the main list stays
+        # focused on content. Quality presets auto-manage which one is active.
+        speed_frame = ttk.Frame(lora_frame)
+        speed_frame.pack(fill="x", pady=(8, 0))
+
+        self.speed_expanded = False
+        self.speed_toggle_btn = ttk.Button(
+            speed_frame,
+            text="▸ Speed LoRAs (4-step acceleration — managed by Quality preset)",
+            command=self._toggle_speed)
+        self.speed_toggle_btn.pack(fill="x")
+
+        self.speed_body = ttk.Frame(speed_frame)
+        # packed lazily in _toggle_speed
+
+        speed_cols = ttk.Frame(self.speed_body)
+        speed_cols.pack(fill="x", pady=(4, 0))
+        speed_cols.columnconfigure(0, weight=1)
+        speed_cols.columnconfigure(1, weight=1)
+
+        high_speed_frame = ttk.LabelFrame(speed_cols, text="HIGH Loader", padding=4)
+        high_speed_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        self.high_speed_container = ttk.Frame(high_speed_frame)
+        self.high_speed_container.pack(fill="x")
+
+        low_speed_frame = ttk.LabelFrame(speed_cols, text="LOW Loader", padding=4)
+        low_speed_frame.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        self.low_speed_container = ttk.Frame(low_speed_frame)
+        self.low_speed_container.pack(fill="x")
+
+        ttk.Label(self.speed_body,
+                  text="Picking a Quality preset auto-enables one Lightning + "
+                       "tunes strengths (HIGH 0.7 / LOW 1.0 for quality+hero).",
+                  foreground="#888", wraplength=680, font=("Segoe UI", 9)).pack(
+            fill="x", pady=(4, 0))
+
         if self.lora_file_var.get():
             self._load_loras()
 
@@ -393,6 +572,15 @@ class App:
             row=row, column=3, sticky="w", padx=4)
 
         row = 1
+        ttk.Label(params, text="Resolution:").grid(row=row, column=0, sticky="w", padx=4)
+        self.resolution_var = tk.StringVar(value="")
+        self.resolution_combo = ttk.Combobox(
+            params, textvariable=self.resolution_var,
+            values=[label for label, _, _ in RESOLUTION_PRESETS] + [RESOLUTION_CUSTOM],
+            state="readonly", width=42)
+        self.resolution_combo.grid(row=row, column=1, columnspan=3, sticky="w", padx=4)
+
+        row = 2
         ttk.Label(params, text="Width:").grid(row=row, column=0, sticky="w", padx=4)
         self.width_var = tk.IntVar(value=self.config.get("width", 832))
         ttk.Entry(params, textvariable=self.width_var, width=8).grid(
@@ -402,6 +590,36 @@ class App:
         self.height_var = tk.IntVar(value=self.config.get("height", 480))
         ttk.Entry(params, textvariable=self.height_var, width=8).grid(
             row=row, column=3, sticky="w", padx=4)
+
+        # Two-way sync: selecting a preset fills W/H; editing W/H flips to Custom
+        self._resolution_syncing = False
+        def _on_resolution_preset_change(*_):
+            if self._resolution_syncing:
+                return
+            label = self.resolution_var.get()
+            for preset_label, w, h in RESOLUTION_PRESETS:
+                if preset_label == label:
+                    self._resolution_syncing = True
+                    self.width_var.set(w)
+                    self.height_var.set(h)
+                    self._resolution_syncing = False
+                    return
+        def _on_wh_manual_change(*_):
+            if self._resolution_syncing:
+                return
+            try:
+                w, h = int(self.width_var.get()), int(self.height_var.get())
+            except (tk.TclError, ValueError):
+                return
+            match = next((lbl for lbl, pw, ph in RESOLUTION_PRESETS if pw == w and ph == h), None)
+            self._resolution_syncing = True
+            self.resolution_var.set(match if match else RESOLUTION_CUSTOM)
+            self._resolution_syncing = False
+        self.resolution_var.trace_add("write", _on_resolution_preset_change)
+        self.width_var.trace_add("write", _on_wh_manual_change)
+        self.height_var.trace_add("write", _on_wh_manual_change)
+        # Seed dropdown from current width/height
+        _on_wh_manual_change()
 
         # ── Advanced ────────────────────────────────────────────────────
         adv = ttk.LabelFrame(main, text="Advanced (optional)", padding=8)
@@ -453,6 +671,15 @@ class App:
                                     wrap="word", relief="flat", bd=2, state="disabled")
         self.result_text.pack(fill="both", expand=True, pady=(4, 0))
 
+        # Stop wheel events on text/combobox widgets from propagating to the
+        # outer canvas scroll — otherwise scrolling inside a dropdown or text
+        # area drags the whole page with it.
+        def _consume_wheel(_event):
+            return "break"
+        for widget in (self.quality_combo, self.style_combo, self.scene_preset_combo,
+                        self.resolution_combo, self.prompt_text, self.result_text):
+            widget.bind("<MouseWheel>", _consume_wheel)
+
         self._toggle_mode()
 
     # ── LoRA Management ─────────────────────────────────────────────────
@@ -465,10 +692,10 @@ class App:
             self._load_loras()
 
     def _load_loras(self):
-        for widget in self.high_lora_container.winfo_children():
-            widget.destroy()
-        for widget in self.low_lora_container.winfo_children():
-            widget.destroy()
+        for container in (self.high_lora_container, self.low_lora_container,
+                          self.high_speed_container, self.low_speed_container):
+            for widget in container.winfo_children():
+                widget.destroy()
         self.high_lora_vars.clear()
         self.low_lora_vars.clear()
 
@@ -501,6 +728,7 @@ class App:
         # Filter by pipeline (T2V/I2V)
         visible = [n for n in filtered if lora_for_pipeline(n, pipeline)]
 
+        speed_count = 0
         for name in visible:
             low_name = derive_low_name(name) or name
             # Prefer saved state; fall back to defaults
@@ -512,12 +740,27 @@ class App:
                 strength_val = default_str
             enabled = tk.BooleanVar(value=auto_on)
             strength = tk.StringVar(value=strength_val)
-            self._add_lora_row(self.high_lora_container, self.high_lora_vars,
+
+            # Route Lightning LoRAs to the collapsible Speed section
+            if is_speed_lora(name):
+                hi_container = self.high_speed_container
+                lo_container = self.low_speed_container
+                speed_count += 1
+            else:
+                hi_container = self.high_lora_container
+                lo_container = self.low_lora_container
+
+            self._add_lora_row(hi_container, self.high_lora_vars,
                                name, enabled, strength)
-            self._add_lora_row(self.low_lora_container, self.low_lora_vars,
+            self._add_lora_row(lo_container, self.low_lora_vars,
                                low_name, enabled, strength)
 
-        self._log(f"Loaded {len(visible)} LoRAs for {pipeline.upper()}")
+        content_count = len(visible) - speed_count
+        self._log(f"Loaded {content_count} content + {speed_count} speed LoRAs for {pipeline.upper()}")
+
+        # Re-apply preset Lightning selection after the fresh reload (saved state
+        # may have been overridden by a new preset choice).
+        self._apply_preset_lightning()
 
     def _add_lora_row(self, container, var_list, name, enabled, strength):
         row = ttk.Frame(container)
@@ -535,6 +778,103 @@ class App:
     def _deselect_all_loras(self):
         for _, enabled, _ in self.high_lora_vars:
             enabled.set(False)
+
+    def _toggle_speed(self):
+        if self.speed_expanded:
+            self.speed_body.pack_forget()
+            self.speed_toggle_btn.configure(
+                text="▸ Speed LoRAs (4-step acceleration — managed by Quality preset)")
+        else:
+            self.speed_body.pack(fill="x", pady=(4, 0))
+            self.speed_toggle_btn.configure(
+                text="▾ Speed LoRAs (4-step acceleration — managed by Quality preset)")
+        self.speed_expanded = not self.speed_expanded
+
+    def _apply_preset_lightning(self):
+        """When a quality preset is selected, enable its preferred Lightning
+        LoRA for the current pipeline and disable all other Lightning LoRAs.
+        Strength values are retuned server-side by the handler preset."""
+        if not hasattr(self, "quality_preset_var"):
+            return  # called before preset UI is built
+        preset = self.quality_preset_var.get().strip()
+        if not preset or preset not in PRESET_LIGHTNING:
+            return  # no preset selected → leave Lightning choices alone
+        pipeline = self.mode_var.get()
+        preferred = PRESET_LIGHTNING[preset].get(pipeline, "")
+        if not preferred:
+            return
+
+        for name, enabled, _ in self.high_lora_vars:
+            if not is_speed_lora(name):
+                continue
+            enabled.set(preferred in name)
+
+    def _scene_label(self, preset):
+        """Build the dropdown label for a scene preset."""
+        pipe = preset.get("pipeline", "both").upper()
+        return f"[{pipe}] {preset.get('category','?')} — {preset.get('name','?')}"
+
+    def _scene_by_label(self, label):
+        for p in self.scene_presets:
+            if self._scene_label(p) == label:
+                return p
+        return None
+
+    def _apply_scene_preset(self):
+        """Tick matching content LoRAs, set strengths, seed the prompt box.
+
+        Base LoRAs and Speed LoRAs are left alone — they're managed separately
+        by the user / the Quality preset.
+        """
+        label = self.scene_preset_var.get().strip()
+        if not label:
+            return
+        preset = self._scene_by_label(label)
+        if not preset:
+            return
+
+        pipeline = self.mode_var.get()
+        if preset.get("pipeline") not in ("both", pipeline):
+            self._log(f"Scene '{preset.get('name')}' is {preset.get('pipeline').upper()}-only; "
+                       f"switch mode first.")
+            return
+
+        # Apply LoRA selections
+        targets = preset.get("loras", [])  # [{name_contains, strength}, ...]
+        matched_any = False
+        missing = []
+        for name, enabled, strength in self.high_lora_vars:
+            if is_speed_lora(name) or is_base_lora(name):
+                continue  # don't touch speed or base LoRAs
+            hit = None
+            for t in targets:
+                if t["name_contains"].lower() in name.lower():
+                    hit = t
+                    break
+            if hit:
+                enabled.set(True)
+                strength.set(str(hit["strength"]))
+                matched_any = True
+            else:
+                enabled.set(False)
+
+        # Warn about any preset LoRAs we couldn't find on disk
+        loaded_names_lower = [n.lower() for n, _, _ in self.high_lora_vars]
+        for t in targets:
+            needle = t["name_contains"].lower()
+            if not any(needle in n for n in loaded_names_lower):
+                missing.append(t["name_contains"])
+        if missing:
+            self._log(f"  ⚠ missing for scene '{preset.get('name')}': {', '.join(missing)}")
+
+        # Seed the prompt (replaces whatever's there — user edits before submit)
+        prompt_tpl = preset.get("prompt")
+        if prompt_tpl:
+            self.prompt_text.delete("1.0", "end")
+            self.prompt_text.insert("1.0", prompt_tpl)
+
+        self._log(f"Scene preset: {preset.get('name')} "
+                   f"({sum(1 for t in targets)} LoRA{'s' if len(targets)!=1 else ''})")
 
     def _get_selected_loras(self):
         """Get selected LoRAs as {high_loras, low_loras} for the handler."""
