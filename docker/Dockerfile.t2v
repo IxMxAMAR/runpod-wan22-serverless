@@ -78,5 +78,12 @@ ENV TRITON_CACHE_DIR=/runpod-volume/.triton
 ENV TORCHINDUCTOR_CACHE_DIR=/runpod-volume/.inductor
 
 # ComfyUI flags — activate SageAttention 2 + skip the preview pass (saves 2–5s/gen).
+# --reserve-vram 2 keeps 2GB headroom for activations so 14B dual-pass UNETs
+# get properly offloaded between HIGH and LOW sampler passes on 32GB cards.
 # worker-comfyui base reads COMFY_ARGS in its start script.
-ENV COMFY_ARGS="--use-sage-attention --preview-method none"
+ENV COMFY_ARGS="--use-sage-attention --preview-method none --reserve-vram 2"
+
+# PyTorch's expandable_segments allocator reduces fragmentation on large models —
+# fixes OOMs where "free memory" is high but allocator can't satisfy a contiguous
+# request (classic 14B dual-pass failure mode on 32GB GPUs).
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
