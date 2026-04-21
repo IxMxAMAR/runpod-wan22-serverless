@@ -29,6 +29,10 @@ DEFAULT_CONFIG = {
     "i2v_endpoint": "",
     "lora_file": "",
     "mode": "t2v",
+    "output_mode": "slow",
+    "quality_preset": "",
+    "style_preset": "",
+    "slg_enabled": False,
     "prompt": "A golden retriever running through a sunlit meadow",
     "duration": 3,
     "seed": "42",
@@ -259,6 +263,40 @@ class App:
         ttk.Radiobutton(mode_frame, text="Image to Video (I2V)",
                         variable=self.mode_var, value="i2v",
                         command=self._toggle_mode).pack(side="left", padx=8)
+
+        ttk.Separator(mode_frame, orient="vertical").pack(side="left", fill="y", padx=12)
+        self.output_mode_var = tk.StringVar(value=self.config.get("output_mode", "slow"))
+        ttk.Radiobutton(mode_frame, text="Fast (no RIFE)",
+                        variable=self.output_mode_var, value="fast").pack(side="left", padx=8)
+        ttk.Radiobutton(mode_frame, text="Slow-mo (RIFE 2x)",
+                        variable=self.output_mode_var, value="slow").pack(side="left", padx=8)
+
+        # ── Presets ─────────────────────────────────────────────────────
+        presets = ttk.LabelFrame(main, text="Presets", padding=8)
+        presets.pack(fill="x", pady=(0, 8))
+
+        ttk.Label(presets, text="Quality:").grid(row=0, column=0, sticky="w", padx=4)
+        self.quality_preset_var = tk.StringVar(value=self.config.get("quality_preset", ""))
+        ttk.Combobox(presets, textvariable=self.quality_preset_var,
+                     values=["", "fast", "quality", "hero"],
+                     state="readonly", width=12).grid(row=0, column=1, sticky="w", padx=4)
+        ttk.Label(presets, text="(sampler, CFG, steps, SLG)",
+                  foreground="#888").grid(row=0, column=2, sticky="w", padx=4)
+
+        ttk.Label(presets, text="Style:").grid(row=1, column=0, sticky="w", padx=4)
+        self.style_preset_var = tk.StringVar(value=self.config.get("style_preset", ""))
+        ttk.Combobox(presets, textvariable=self.style_preset_var,
+                     values=["", "realistic", "cinematic_film", "pov_handheld"],
+                     state="readonly", width=16).grid(row=1, column=1, sticky="w", padx=4)
+        ttk.Label(presets, text="(appends camera/lighting tokens to prompt)",
+                  foreground="#888").grid(row=1, column=2, sticky="w", padx=4)
+
+        self.slg_enabled_var = tk.BooleanVar(value=self.config.get("slg_enabled", False))
+        ttk.Checkbutton(presets, text="SkipLayerGuidance (anatomy fix)",
+                        variable=self.slg_enabled_var).grid(
+            row=2, column=0, columnspan=2, sticky="w", padx=4, pady=(4, 0))
+        ttk.Label(presets, text="(adds ~10% gen time)",
+                  foreground="#888").grid(row=2, column=2, sticky="w", padx=4, pady=(4, 0))
 
         # ── Prompt ──────────────────────────────────────────────────────
         prompt_frame = ttk.LabelFrame(main, text="Prompt", padding=8)
@@ -570,6 +608,10 @@ class App:
         self.config["i2v_endpoint"] = self.i2v_var.get()
         self.config["lora_file"] = self.lora_file_var.get()
         self.config["mode"] = self.mode_var.get()
+        self.config["output_mode"] = self.output_mode_var.get()
+        self.config["quality_preset"] = self.quality_preset_var.get()
+        self.config["style_preset"] = self.style_preset_var.get()
+        self.config["slg_enabled"] = self.slg_enabled_var.get()
         self.config["prompt"] = self.prompt_text.get("1.0", "end").strip()
         self.config["duration"] = self.duration_var.get()
         self.config["seed"] = self.seed_var.get()
@@ -613,11 +655,22 @@ class App:
         params = {
             "prompt": prompt,
             "duration": self.duration_var.get(),
+            "mode": self.output_mode_var.get(),
             "resolution": {
                 "width": self.width_var.get(),
                 "height": self.height_var.get(),
             },
         }
+
+        quality = self.quality_preset_var.get().strip()
+        if quality:
+            params["quality_preset"] = quality
+        style = self.style_preset_var.get().strip()
+        if style:
+            params["style_preset"] = style
+        # SLG checkbox overrides preset default only when user explicitly turned it on.
+        if self.slg_enabled_var.get() and not quality:
+            params["slg_enabled"] = True
 
         seed = self.seed_var.get().strip()
         if seed:

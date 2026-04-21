@@ -91,6 +91,116 @@ NODE_IDS = {
 
 MAX_LORA_SLOTS = 10
 
+# Nodes to drop per (pipeline, mode).
+#   fast → no RIFE, no slow-mo combine (just normal h264)
+#   slow → no normal combine (RIFE + slow-mo combine only)
+# Dropped nodes are leaves in the graph, so removal never leaves dangling refs.
+MODE_BYPASS = {
+    ("t2v", "fast"): ["rife", "video_combine_slowmo"],
+    ("t2v", "slow"): ["video_combine"],
+    ("i2v", "fast"): ["rife", "video_combine_slowmo"],
+    ("i2v", "slow"): ["video_combine"],
+}
+
+# Lightning / step-distillation LoRA name patterns (case-insensitive substring match).
+# When a preset or user overrides `lightning_strength_*`, LoRAs whose filename
+# matches any of these get the new strength; other LoRAs are left alone.
+LIGHTNING_PATTERNS = (
+    "lightning",
+    "light_2",      # lightx2v_t2v / lightx2v_i2v
+    "lightx2v",
+    "4steps",
+    "4-step",
+    "cfg_step_distill",
+    "seko",
+)
+
+# Quality presets tune sampler/scheduler, CFG, step split, Lightning strength,
+# and SLG together. Individual params in the request override preset values.
+# Pass `quality_preset: "fast" | "quality" | "hero"` (no preset = legacy behavior).
+QUALITY_PRESETS = {
+    "fast": {
+        "steps": 4,
+        "split_ratio": 0.5,
+        "cfg_high": 1.0,
+        "cfg_low": 1.0,
+        "shift_high": 5.0,
+        "shift_low": 5.0,
+        "lightning_strength_high": 1.0,
+        "lightning_strength_low": 1.0,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "slg_enabled": False,
+    },
+    "quality": {
+        "steps": 6,
+        "split_ratio": 0.5,
+        "cfg_high": 3.0,
+        "cfg_low": 1.0,
+        "shift_high": 8.0,
+        "shift_low": 5.0,
+        "lightning_strength_high": 0.7,
+        "lightning_strength_low": 1.0,
+        "sampler_name": "res_multistep",
+        "scheduler": "beta",
+        "slg_enabled": True,
+    },
+    "hero": {
+        "steps": 12,
+        "split_ratio": 0.5,
+        "cfg_high": 3.5,
+        "cfg_low": 1.5,
+        "shift_high": 8.0,
+        "shift_low": 5.0,
+        "lightning_strength_high": 0.7,
+        "lightning_strength_low": 1.0,
+        "sampler_name": "res_multistep",
+        "scheduler": "beta",
+        "slg_enabled": True,
+    },
+}
+
+# SLG defaults (applied when slg_enabled=True). Validated recipe: block 9,
+# start 0.2, end 0.9, scale 3.0 — documented fix for morphing on WAN 2.2 14B.
+SLG_DEFAULTS = {
+    "blocks": "9",
+    "start_percent": 0.2,
+    "end_percent": 0.9,
+    "scale": 3.0,
+}
+
+# Prompt style presets — appended to the user's prompt. Keep user's text as the
+# load-bearing subject; presets just add camera/lighting/quality grammar.
+STYLE_PRESETS = {
+    "realistic": (
+        "handheld close-up tracking shot, shallow depth of field, 35mm film, "
+        "natural window light, golden hour, "
+        "cinematic 35mm film grain, raw unfiltered, natural skin texture, anatomically detailed"
+    ),
+    "cinematic_film": (
+        "slow dolly in, anamorphic lens, low angle, "
+        "moody low-key lighting, rim light from behind, "
+        "cinematic, film grain, shallow depth of field, bokeh, anatomically detailed"
+    ),
+    "pov_handheld": (
+        "first person POV, handheld tracking, close-up, "
+        "bedside lamp glow, warm tungsten, "
+        "raw unfiltered, intimate, natural skin texture, anatomically detailed"
+    ),
+}
+
+# Curated default negative prompt — biggest fix for fused-fingers / malformed
+# anatomy at 4-step. Applied only if the user's request has no negative_prompt.
+DEFAULT_NEGATIVE_PROMPT = (
+    "bad anatomy, malformed genitals, fused fingers, extra fingers, missing fingers, "
+    "extra limbs, deformed hands, mosaic censoring, pixelated censoring, black bar, "
+    "morphing, warping, distortion, face deformation, jittering, flickering, "
+    "motion blur, sudden changes, inconsistent lighting, background jitter, horizon bend, "
+    "text, watermark, logo, subtitle, signature, username, "
+    "blurry, low quality, low resolution, compression artifacts, "
+    "cartoon, anime, 3d render, cgi, doll, plastic skin, waxy skin, airbrushed"
+)
+
 
 # ── Utility Functions ───────────────────────────────────────────────────────
 
@@ -131,6 +241,12 @@ def generate_seed(seed):
     return random.randint(0, 2**32 - 1)
 
 
+def _is_lightning(lora_name):
+    """Does this LoRA filename look like a step-distillation / Lightning LoRA?"""
+    lower = lora_name.lower()
+    return any(pat in lower for pat in LIGHTNING_PATTERNS)
+
+
 # ── Template Engine ─────────────────────────────────────────────────────────
 
 class TemplateEngine:
@@ -147,17 +263,44 @@ class TemplateEngine:
             if not path.exists():
                 available = ", ".join(self.list_templates())
                 raise ValueError(f"Template '{name}' not found. Available: {available}")
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 self._cache[name] = json.load(f)
         return copy.deepcopy(self._cache[name])
 
     def hydrate(self, template_name, params, pipeline):
         wf = self.load_template(template_name)
 
+        # Resolve quality preset first; explicit params always override preset values.
+        preset_name = params.get("quality_preset")
+        if preset_name is not None and preset_name not in QUALITY_PRESETS:
+            raise ValueError(
+                f"quality_preset must be one of {list(QUALITY_PRESETS)}, got {preset_name!r}"
+            )
+        preset = dict(QUALITY_PRESETS.get(preset_name, {}))
+
+        def pick(key):
+            """Param value if explicitly set, else preset, else None."""
+            if key in params:
+                return params[key]
+            return preset.get(key)
+
+        # Prompt + negative prompt (with style preset + default negative fallback).
         if "prompt" in params:
-            self.set_prompt(wf, params["prompt"], pipeline)
+            prompt_text = params["prompt"]
+            style = params.get("style_preset")
+            if style is not None:
+                if style not in STYLE_PRESETS:
+                    raise ValueError(
+                        f"style_preset must be one of {list(STYLE_PRESETS)}, got {style!r}"
+                    )
+                prompt_text = f"{prompt_text}, {STYLE_PRESETS[style]}"
+            self.set_prompt(wf, prompt_text, pipeline)
+
         if "negative_prompt" in params:
             self.set_negative_prompt(wf, params["negative_prompt"], pipeline)
+        elif preset_name is not None:
+            # Presets imply the user wants our curated negative baseline.
+            self.set_negative_prompt(wf, DEFAULT_NEGATIVE_PROMPT, pipeline)
 
         seed = params.get("seed")
         if seed is None:
@@ -171,12 +314,14 @@ class TemplateEngine:
         frames = calculate_frames(duration, pipeline)
         self.set_frame_count(wf, frames, pipeline)
 
+        # LoRA injection (accepts lightning_strength_* to retune Lightning slots).
+        lightning_high = pick("lightning_strength_high")
+        lightning_low = pick("lightning_strength_low")
         if "high_loras" in params or "low_loras" in params:
             high = params.get("high_loras", [])
             low = params.get("low_loras", [])
-            self.set_loras(wf, high, low, pipeline)
+            self.set_loras(wf, high, low, pipeline, lightning_high, lightning_low)
         elif "loras" in params:
-            # Backwards compat: single list, auto-split HIGH/LOW
             high, low = [], []
             for lora in params["loras"]:
                 name = lora["name"]
@@ -187,19 +332,66 @@ class TemplateEngine:
                 elif "LOW" not in name:
                     high.append({"name": name, "strength": s})
                     low.append({"name": name, "strength": s})
-            self.set_loras(wf, high, low, pipeline)
-        if "steps" in params:
-            self.set_steps(wf, params["steps"], pipeline)
-        if "cfg" in params:
-            self.set_cfg(wf, params["cfg"], pipeline)
-        if "shift" in params:
-            self.set_shift(wf, params["shift"], pipeline)
+            self.set_loras(wf, high, low, pipeline, lightning_high, lightning_low)
+        elif lightning_high is not None or lightning_low is not None:
+            # No new LoRA list but preset wants Lightning retuned — patch in place.
+            self.retune_lightning(wf, pipeline, lightning_high, lightning_low)
+
+        # Step count + split ratio.
+        steps = pick("steps")
+        split_ratio = pick("split_ratio")
+        if steps is not None:
+            self.set_steps(wf, steps, pipeline, split_ratio)
+
+        # CFG — accept `cfg` (both passes) or `cfg_high`/`cfg_low` individually.
+        cfg_high = params.get("cfg_high", params.get("cfg", preset.get("cfg_high")))
+        cfg_low = params.get("cfg_low", params.get("cfg", preset.get("cfg_low")))
+        if cfg_high is not None or cfg_low is not None:
+            self.set_cfg(wf, cfg_high, cfg_low, pipeline)
+
+        # Shift — same pattern.
+        shift_high = params.get("shift_high", params.get("shift", preset.get("shift_high")))
+        shift_low = params.get("shift_low", params.get("shift", preset.get("shift_low")))
+        if shift_high is not None or shift_low is not None:
+            self.set_shift(wf, shift_high, shift_low, pipeline)
+
+        # Sampler / scheduler.
+        sampler_name = pick("sampler_name")
+        scheduler = pick("scheduler")
+        if sampler_name is not None or scheduler is not None:
+            self.set_sampler(wf, sampler_name, scheduler, pipeline)
+
         if "fps" in params:
             self.set_fps(wf, params["fps"], pipeline)
         if "rife_multiplier" in params:
             self.set_rife_multiplier(wf, params["rife_multiplier"], pipeline)
 
+        # SkipLayerGuidance — dynamic node injection when enabled.
+        slg_enabled = pick("slg_enabled")
+        if slg_enabled:
+            slg_params = {**SLG_DEFAULTS, **params.get("slg", {})}
+            self.inject_slg(wf, pipeline, slg_params)
+
+        if "mode" in params:
+            mode = params["mode"]
+            if mode not in ("fast", "slow"):
+                raise ValueError(f"mode must be 'fast' or 'slow', got {mode!r}")
+            self.set_mode(wf, mode, pipeline)
+
         return wf
+
+    def set_mode(self, wf, mode, pipeline):
+        """Prune unused output nodes so ComfyUI skips RIFE / extra combine.
+
+        'fast' keeps the normal h264 combine; drops RIFE + slow-mo combine.
+        'slow' keeps RIFE + slow-mo combine; drops normal combine.
+        """
+        bypass_keys = MODE_BYPASS.get((pipeline, mode), [])
+        ids = NODE_IDS[pipeline]
+        for key in bypass_keys:
+            node_id = ids.get(key)
+            if node_id and node_id in wf:
+                del wf[node_id]
 
     def set_prompt(self, wf, text, pipeline):
         wf[NODE_IDS[pipeline]["positive_prompt"]]["inputs"]["text"] = text
@@ -212,23 +404,44 @@ class TemplateEngine:
         wf[ids["ksampler_high"]]["inputs"]["noise_seed"] = seed
         wf[ids["ksampler_low"]]["inputs"]["noise_seed"] = seed
 
-    def set_steps(self, wf, steps, pipeline):
+    def set_steps(self, wf, steps, pipeline, split_ratio=None):
+        """Set total step count and the HIGH/LOW split boundary.
+
+        split_ratio ∈ (0, 1): fraction of steps the HIGH pass runs. Default 0.5.
+        """
+        if split_ratio is None:
+            split_ratio = 0.5
         ids = NODE_IDS[pipeline]
-        split = steps // 2
+        split = max(1, min(steps - 1, int(round(steps * split_ratio))))
         wf[ids["ksampler_high"]]["inputs"]["steps"] = steps
         wf[ids["ksampler_high"]]["inputs"]["end_at_step"] = split
         wf[ids["ksampler_low"]]["inputs"]["steps"] = steps
         wf[ids["ksampler_low"]]["inputs"]["start_at_step"] = split
 
-    def set_cfg(self, wf, cfg, pipeline):
+    def set_cfg(self, wf, cfg_high, cfg_low, pipeline):
+        """Set CFG per pass. Either arg may be None to leave that pass untouched."""
         ids = NODE_IDS[pipeline]
-        wf[ids["ksampler_high"]]["inputs"]["cfg"] = cfg
-        wf[ids["ksampler_low"]]["inputs"]["cfg"] = cfg
+        if cfg_high is not None:
+            wf[ids["ksampler_high"]]["inputs"]["cfg"] = cfg_high
+        if cfg_low is not None:
+            wf[ids["ksampler_low"]]["inputs"]["cfg"] = cfg_low
 
-    def set_shift(self, wf, shift, pipeline):
+    def set_shift(self, wf, shift_high, shift_low, pipeline):
+        """Set ModelSamplingSD3 shift per pass. Either arg may be None."""
         ids = NODE_IDS[pipeline]
-        wf[ids["shift_high"]]["inputs"]["shift"] = shift
-        wf[ids["shift_low"]]["inputs"]["shift"] = shift
+        if shift_high is not None:
+            wf[ids["shift_high"]]["inputs"]["shift"] = shift_high
+        if shift_low is not None:
+            wf[ids["shift_low"]]["inputs"]["shift"] = shift_low
+
+    def set_sampler(self, wf, sampler_name, scheduler, pipeline):
+        """Update sampler_name / scheduler on both KSamplerAdvanced nodes."""
+        ids = NODE_IDS[pipeline]
+        for k_id in (ids["ksampler_high"], ids["ksampler_low"]):
+            if sampler_name is not None:
+                wf[k_id]["inputs"]["sampler_name"] = sampler_name
+            if scheduler is not None:
+                wf[k_id]["inputs"]["scheduler"] = scheduler
 
     def set_resolution(self, wf, width, height, pipeline):
         node_id = NODE_IDS[pipeline]["latent"]
@@ -239,24 +452,89 @@ class TemplateEngine:
         node_id = NODE_IDS[pipeline]["latent"]
         wf[node_id]["inputs"]["length"] = frames
 
-    def set_loras(self, wf, high_loras, low_loras, pipeline):
-        """Inject LoRAs into HIGH and LOW Power Lora Loader nodes separately."""
+    def set_loras(self, wf, high_loras, low_loras, pipeline,
+                   lightning_strength_high=None, lightning_strength_low=None):
+        """Inject LoRAs into HIGH and LOW Power Lora Loader nodes separately.
+
+        When lightning_strength_* is provided, any LoRA whose name matches a
+        Lightning pattern gets its strength replaced — lets a preset retune
+        Lightning without the caller needing to know which slot it lives in.
+        """
         ids = NODE_IDS[pipeline]
-        for loader_id, lora_list in [(ids["lora_high"], high_loras),
-                                      (ids["lora_low"], low_loras)]:
+        overrides = {
+            ids["lora_high"]: (high_loras, lightning_strength_high),
+            ids["lora_low"]: (low_loras, lightning_strength_low),
+        }
+        for loader_id, (lora_list, lightning_override) in overrides.items():
             inputs = wf[loader_id]["inputs"]
             for i in range(1, MAX_LORA_SLOTS + 1):
                 key = f"lora_{i}"
                 if i <= len(lora_list):
+                    entry = lora_list[i - 1]
+                    strength = entry["strength"]
+                    if lightning_override is not None and _is_lightning(entry["name"]):
+                        strength = lightning_override
                     inputs[key] = {
                         "on": True,
-                        "lora": lora_list[i - 1]["name"],
-                        "strength": lora_list[i - 1]["strength"],
+                        "lora": entry["name"],
+                        "strength": strength,
                     }
                 elif key in inputs:
                     inputs[key]["on"] = False
                 else:
                     break
+
+    def retune_lightning(self, wf, pipeline, lightning_strength_high=None,
+                          lightning_strength_low=None):
+        """Rewrite Lightning-pattern LoRA strengths on the existing loaders."""
+        ids = NODE_IDS[pipeline]
+        pairs = [
+            (ids["lora_high"], lightning_strength_high),
+            (ids["lora_low"], lightning_strength_low),
+        ]
+        for loader_id, override in pairs:
+            if override is None:
+                continue
+            inputs = wf[loader_id]["inputs"]
+            for i in range(1, MAX_LORA_SLOTS + 1):
+                key = f"lora_{i}"
+                if key not in inputs:
+                    break
+                slot = inputs[key]
+                if isinstance(slot, dict) and _is_lightning(slot.get("lora", "")):
+                    slot["strength"] = override
+
+    def inject_slg(self, wf, pipeline, slg_params):
+        """Insert SkipLayerGuidanceWanVideo between ModelSamplingSD3 and each KSampler.
+
+        Topology before:   ModelSamplingSD3 → KSamplerAdvanced (model input)
+        Topology after:    ModelSamplingSD3 → SLG node → KSamplerAdvanced
+
+        SLG nodes get deterministic IDs "_slg_high" / "_slg_low" so a second
+        call is idempotent — re-hydration won't stack multiple SLG nodes.
+        """
+        ids = NODE_IDS[pipeline]
+        for pass_name, k_key, m_key in (
+            ("high", "ksampler_high", "shift_high"),
+            ("low", "ksampler_low", "shift_low"),
+        ):
+            ksampler_id = ids[k_key]
+            model_source = wf[ksampler_id]["inputs"]["model"]
+            slg_id = f"_slg_{pass_name}"
+            # Skip if already wired — idempotent.
+            if isinstance(model_source, list) and model_source[0] == slg_id:
+                continue
+            wf[slg_id] = {
+                "class_type": "SkipLayerGuidanceWanVideo",
+                "inputs": {
+                    "blocks": str(slg_params.get("blocks", SLG_DEFAULTS["blocks"])),
+                    "start_percent": float(slg_params.get("start_percent", SLG_DEFAULTS["start_percent"])),
+                    "end_percent": float(slg_params.get("end_percent", SLG_DEFAULTS["end_percent"])),
+                    "scale": float(slg_params.get("scale", SLG_DEFAULTS["scale"])),
+                    "model": model_source,
+                },
+            }
+            wf[ksampler_id]["inputs"]["model"] = [slg_id, 0]
 
     def set_fps(self, wf, fps, pipeline):
         wf[NODE_IDS[pipeline]["video_combine"]]["inputs"]["frame_rate"] = fps
@@ -348,7 +626,7 @@ def monitor_execution(prompt_id, client_id):
         ws.close()
 
 
-def collect_results(prompt_id):
+def collect_results(prompt_id, mode="slow"):
     resp = requests.get(f"{COMFY_BASE_URL}/history/{prompt_id}")
     resp.raise_for_status()
     history = resp.json()
@@ -356,9 +634,7 @@ def collect_results(prompt_id):
         raise RuntimeError(f"No history found for prompt {prompt_id}")
 
     outputs = history[prompt_id].get("outputs", {})
-
-    # Prefer the slow-motion video node for the current pipeline
-    slowmo_node_id = NODE_IDS.get(PIPELINE_TYPE, {}).get("video_combine_slowmo")
+    ids = NODE_IDS.get(PIPELINE_TYPE, {})
 
     def fetch_video(gif):
         video_resp = requests.get(
@@ -376,13 +652,15 @@ def collect_results(prompt_id):
             "data": base64.b64encode(video_resp.content).decode(),
         }
 
-    # First pass: try to get the slow-mo video specifically
-    if slowmo_node_id and slowmo_node_id in outputs:
-        gifs = outputs[slowmo_node_id].get("gifs", [])
+    # Pick the expected combine node based on mode, with sensible fallback.
+    preferred_key = "video_combine" if mode == "fast" else "video_combine_slowmo"
+    preferred_id = ids.get(preferred_key)
+    if preferred_id and preferred_id in outputs:
+        gifs = outputs[preferred_id].get("gifs", [])
         if gifs:
             return {"videos": [fetch_video(gifs[0])]}
 
-    # Fallback: return the first available video
+    # Fallback: first available video from any output node
     for node_id, node_output in outputs.items():
         for gif in node_output.get("gifs", []):
             return {"videos": [fetch_video(gif)]}
@@ -396,12 +674,14 @@ engine = TemplateEngine(TEMPLATE_DIR)
 
 
 def route_request(input_data):
-    mode, data = validate_input(input_data)
+    req_mode, data = validate_input(input_data)
     start_time = time.time()
+    output_mode = None
 
-    if mode == "template":
+    if req_mode == "template":
         template_name = data["template"]
         params = data["params"]
+        output_mode = params.get("mode")
 
         if "high_loras" in params:
             params["high_loras"] = validate_loras(params["high_loras"], VOLUME_PATH)
@@ -431,7 +711,7 @@ def route_request(input_data):
     prompt_id = queue_workflow(workflow, client_id)
     monitor_execution(prompt_id, client_id)
 
-    results = collect_results(prompt_id)
+    results = collect_results(prompt_id, mode=output_mode)
     generation_time = time.time() - start_time
 
     return {
