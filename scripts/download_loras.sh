@@ -110,7 +110,9 @@ dl_civitai_latest 1433071 "Bouncy-Forward-Bends-Wan22-I2V-HIGH.safetensors"
 dl_civitai_latest 1983608 "POV-Missionary-Insertion-Wan22-I2V-LOW.safetensors"
 dl_civitai_latest 1443020 "SingularUnity-Twerk-Wan21-I2V-LOW.safetensors"
 dl_civitai_latest 2557154 "Wan22-Piledriver-I2V.safetensors"
-dl_civitai_latest 1897340 "Sigma-Face-Expression-Wan22-HIGH.safetensors"
+# Sigma-Face-Expression removed — creator trained on only 6 videos, underperforms
+# vs FusionX's native face handling. Uncomment to pull anyway:
+# dl_civitai_latest 1897340 "Sigma-Face-Expression-Wan22-HIGH.safetensors"
 
 # POV Missionary HIGH-noise — pinned to version 2098396 (confirmed in research)
 dl_civitai_version 2098396 "POV-Missionary-Wan22-I2V-HIGH.safetensors"

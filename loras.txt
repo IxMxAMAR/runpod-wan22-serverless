@@ -41,11 +41,13 @@ Instagirlv2.5-HIGH
 CubeyAI-NSFW-Wan22-HIGH-v08a
 BigCockOral-Wan22-I2V-HIGH
 Bouncy-Forward-Bends-Wan22-I2V-HIGH
-Sigma-Face-Expression-Wan22-HIGH
 Wan-Cowgirl-T2V-HIGH
 Wan22-Piledriver-I2V-HIGH
 Wan22-BreastPlay-I2V-HIGH
 POV-Missionary-Insertion-Wan22-I2V-HIGH
+# Sigma-Face-Expression removed — creator trained on only 6 videos, underperforms
+# vs FusionX's native face handling. Keep commented unless you specifically want it.
+# Sigma-Face-Expression-Wan22-HIGH
 
 # ── Single-variant (no HIGH/LOW counterpart, applied to both loaders) ──────
 Fingering-T2V
