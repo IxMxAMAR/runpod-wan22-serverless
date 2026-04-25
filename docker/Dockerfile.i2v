@@ -40,17 +40,20 @@ RUN comfy model download \
     --relative-path models/clip_vision \
     --filename clip_vision_h.safetensors
 
-# I2V HIGH noise UNET (~14GB)
+# I2V HIGH noise UNET — FX-FeiHou Remix v3.0 (NSFW-tuned)
+# Per README, base = Comfy-Org Wan 2.2 ComfyUI Repackaged (NSFW merged on top).
+# Lightning is NOT baked in — keep using Lightning LoRAs as before for 4-step inference.
+# Note: filename "lighting" is the uploader's spelling, not "Lightning" step distillation.
 RUN comfy model download \
-    --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors \
+    --url https://huggingface.co/FX-FeiHou/wan2.2-Remix/resolve/main/NSFW/Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors \
     --relative-path models/diffusion_models \
-    --filename wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors
+    --filename Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors
 
-# I2V LOW noise UNET (~14GB)
+# I2V LOW noise UNET — FX-FeiHou Remix v3.0
 RUN comfy model download \
-    --url https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors \
+    --url https://huggingface.co/FX-FeiHou/wan2.2-Remix/resolve/main/NSFW/Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors \
     --relative-path models/diffusion_models \
-    --filename wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors
+    --filename Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors
 
 # RIFE frame interpolation model (21MB — auto-downloads at runtime but baking avoids latency)
 RUN mkdir -p /comfyui/custom_nodes/comfyui-frame-interpolation/ckpts/rife && \

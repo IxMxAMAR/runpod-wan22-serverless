@@ -1,7 +1,7 @@
 {
   "217": {
     "inputs": {
-      "unet_name": "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors",
+      "unet_name": "Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors",
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader",
@@ -180,7 +180,7 @@
   },
   "270": {
     "inputs": {
-      "unet_name": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+      "unet_name": "Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors",
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader",
