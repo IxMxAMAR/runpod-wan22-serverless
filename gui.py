@@ -40,7 +40,7 @@ def load_scene_presets():
 BASE_LORA_PATTERNS = (
     "secret_sauce",
     "fusionx",
-    "cubeyai",
+    "cubeyai-general",  # v0.06 base enhancer; v08a HIGH/LOW pair is content-managed
     "instagirl",
     "instamodel",
     "nsfw-bundle",
@@ -134,12 +134,14 @@ def load_lora_list(filepath):
     return loras
 
 
-# Patterns for deriving LOW name from HIGH name (longest match first)
+# Patterns for deriving LOW name from HIGH name (longest/most specific first).
+# Each pair: HIGH substring → LOW substring. Case-sensitive substring match.
 HIGH_LOW_PATTERNS = [
     ("HIGHNOISE", "LOWNOISE"),
     ("highnoise", "lownoise"),
     ("HighNoise", "LowNoise"),
     ("high_noise", "low_noise"),
+    ("-high-", "-low-"),     # e.g. wan2.2-i2v-high-oral-insertion → -low-
     ("HIGH", "LOW"),
     ("High", "Low"),
 ]

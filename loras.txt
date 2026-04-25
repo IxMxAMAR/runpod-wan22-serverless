@@ -56,13 +56,9 @@ Instamodel_1
 NSFW-Bundle-SM-Wan22-T2V
 CubeyAI-General-NSFW-Wan22
 
-# ── Edge cases (needs GUI pattern fix to auto-derive LOW) ──────────────────
-# These have lowercase '-high-' / '-low-' naming which isn't in HIGH_LOW_PATTERNS.
-# Uncomment the HIGH entry + add ("-high-", "-low-") to gui.py HIGH_LOW_PATTERNS,
-# OR list both HIGH + LOW explicitly here.
-#wan2.2-i2v-high-oral-insertion-v1.0
+# ── Lowercase HIGH/LOW pair (auto-derived via -high- / -low- pattern) ──────
+wan2.2-i2v-high-oral-insertion-v1.0
 
-# ── Single-variant (LOW-labeled but works as universal) ────────────────────
-# SingularUnity Twerk ships as one file; labeled LOW but applies to both passes.
-# Uncomment to include — both HIGH and LOW loaders will get the same file.
-#SingularUnity-Twerk-Wan21-I2V-LOW
+# ── Single-variant (LOW-labeled but applies to both passes) ────────────────
+# SingularUnity Twerk ships as one file; same filename loaded in HIGH + LOW.
+SingularUnity-Twerk-Wan21-I2V-LOW

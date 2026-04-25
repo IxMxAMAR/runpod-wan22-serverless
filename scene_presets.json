@@ -40,7 +40,7 @@
       "id": "cowgirl_bounce_detail",
       "name": "Cowgirl Bounce + Anatomy",
       "category": "Position",
-      "pipeline": "t2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Wan-Cowgirl-T2V",
@@ -65,7 +65,7 @@
       "id": "doggy_full_stack",
       "name": "Doggystyle Forward-Bend Physics",
       "category": "Position",
-      "pipeline": "i2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Wan22-T2V-DoggyStyle",
@@ -249,7 +249,7 @@
       "id": "dildo_ride_full",
       "name": "Dildo Ride Solo",
       "category": "Toys",
-      "pipeline": "t2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Wan22-T2V-DildoRide",
@@ -309,7 +309,7 @@
       "id": "double_penetration_behind",
       "name": "Double Penetration (Behind)",
       "category": "Multi-partner",
-      "pipeline": "t2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Double-Penetration",
@@ -329,7 +329,7 @@
       "id": "double_penetration_front",
       "name": "Double Penetration (Cowgirl-DP Front)",
       "category": "Multi-partner",
-      "pipeline": "t2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Double-Penetration",
@@ -369,7 +369,7 @@
       "id": "breast_play_grab",
       "name": "Breast Play Self-Grab",
       "category": "Foreplay",
-      "pipeline": "i2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Wan22-BreastPlay",
@@ -384,7 +384,7 @@
       "id": "breast_play_partner",
       "name": "Partner Breast Grab + Kiss",
       "category": "Foreplay",
-      "pipeline": "i2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "Wan22-BreastPlay",
@@ -403,7 +403,7 @@
       "id": "kissing_bedroom",
       "name": "Passionate Kissing Scene",
       "category": "Foreplay",
-      "pipeline": "t2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "KISS",
@@ -488,7 +488,7 @@
       "id": "cubeyai_general_base",
       "name": "CubeyAI General NSFW Base Scene",
       "category": "Position",
-      "pipeline": "t2v",
+      "pipeline": "both",
       "loras": [
         {
           "name_contains": "CubeyAI-NSFW-Wan22",
@@ -503,6 +503,81 @@
       ],
       "prompt": "[SUBJECT_DESCRIPTION], explicit sex scene [SCENE_DESCRIPTION], penis goes in and out of vagina rhythmically, natural motion, warm practical lamp light, handheld cinematic 4k, realistic skin",
       "caveats": "Underbaked — batch 4 seeds, some will be bad. Works 480p I2V but NOT 720p I2V. Creator recommends descriptive prompting over 'nsfwsks' token."
+    },
+    {
+      "id": "t2v_pov_missionary",
+      "name": "POV Missionary (T2V)",
+      "category": "POV Position",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "wan2.2_t2v_highnoise_pov_missionary",
+          "strength": 0.9,
+          "trigger": "missionary sex"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.4,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she lies on her back on a rumpled bed, legs spread wide, missionary sex, A man is thrusting his penis back and forth inside her vagina, movement is fast with bouncing medium sized breasts, POV from above looking down, warm bedside lamp light, shallow depth of field, cinematic 4k, hyper-realistic skin detail",
+      "caveats": "T2V variant of POV Missionary. Use Lightning T2V @ 8 steps / CFG 1 / Euler."
+    },
+    {
+      "id": "t2v_fingering_solo",
+      "name": "Solo Fingering (T2V)",
+      "category": "Solo",
+      "pipeline": "t2v",
+      "loras": [
+        {
+          "name_contains": "Fingering-T2V",
+          "strength": 0.9,
+          "trigger": "She inserts two fingers into her pussy. She masturbates by sliding her fingers in and out of her pussy"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.5,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], a nude woman lying on a bed, she inserts two fingers into her pussy, she masturbates by sliding her fingers in and out of her pussy, her other hand gripping the sheet, close-up from her hip level, soft morning window light, 4k intimate realism, slow breathing rhythm",
+      "caveats": "T2V file. Pair with PussyLoRA at 0.4-0.6 to prevent vaginal distortion."
+    },
+    {
+      "id": "both_oral_classic",
+      "name": "Oral Classic (Both)",
+      "category": "Oral",
+      "pipeline": "both",
+      "loras": [
+        {
+          "name_contains": "Oral-Ins-High",
+          "strength": 0.9,
+          "trigger": "A man appears and she sucks his penis"
+        },
+        {
+          "name_contains": "PussyLoRA",
+          "strength": 0.3,
+          "trigger": "vagina"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she kneels before him on soft carpet, A man appears and she sucks his penis, slow deliberate motion, her hand gently curled at the base, soft window light from the left, medium shot eye-level, desaturated tones, 4k intimate realism",
+      "caveats": "Works T2V + I2V. DO NOT stack LightX2V — creator warning."
+    },
+    {
+      "id": "both_cumshot_facial",
+      "name": "Facial Cumshot (Both)",
+      "category": "Climax",
+      "pipeline": "both",
+      "loras": [
+        {
+          "name_contains": "CumShot-High",
+          "strength": 0.9,
+          "trigger": "A man cums on her"
+        }
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], she kneels in front of him with her mouth open and tongue out, A man cums on her face, thick ropes of cum landing across her cheeks, her eyes half-closed in bliss, the man's hand on his penis aimed at her, 16:9 low angle, warm bedside lamp light, 24fps slow motion, 4k cinematic",
+      "caveats": "Works T2V + I2V. CFG 3.5 HIGH / 7 LOW. NO LightX2V. Best at 16:9."
     }
   ]
 }
