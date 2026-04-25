@@ -420,11 +420,11 @@ class App:
                   foreground="#888").grid(row=1, column=2, sticky="w", padx=4)
 
         self.slg_enabled_var = tk.BooleanVar(value=self.config.get("slg_enabled", False))
-        ttk.Checkbutton(presets, text="SkipLayerGuidance (anatomy fix)",
+        ttk.Checkbutton(presets, text="SkipLayerGuidance (DISABLED — needs TeaCache)",
                         variable=self.slg_enabled_var).grid(
             row=2, column=0, columnspan=2, sticky="w", padx=4, pady=(4, 0))
-        ttk.Label(presets, text="(adds ~10% gen time)",
-                  foreground="#888").grid(row=2, column=2, sticky="w", padx=4, pady=(4, 0))
+        ttk.Label(presets, text="(currently breaks the job — leave off)",
+                  foreground="#c84040").grid(row=2, column=2, sticky="w", padx=4, pady=(4, 0))
 
         # ── Scene preset ────────────────────────────────────────────────
         self.scene_presets = load_scene_presets()
@@ -433,7 +433,7 @@ class App:
         self.scene_preset_combo = ttk.Combobox(
             presets, textvariable=self.scene_preset_var,
             values=[""] + [self._scene_label(p) for p in self.scene_presets],
-            state="readonly", width=40)
+            state="readonly", width=70)
         self.scene_preset_combo.grid(row=3, column=1, columnspan=2, sticky="w",
                                       padx=4, pady=(8, 0))
         ttk.Label(presets, text="(picks content LoRAs + seeds the prompt)",

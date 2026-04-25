@@ -502,26 +502,24 @@ class TestSLGInjection:
         assert "_slg_high" not in wf
         assert "_slg_low" not in wf
 
-    def test_quality_preset_injects_slg(self, engine):
+    def test_quality_preset_does_not_inject_slg(self, engine):
+        # Quality preset has slg_enabled=False because SkipLayerGuidanceWanVideo
+        # currently requires TeaCacheKJ in the workflow (not present in our templates).
         wf = engine.hydrate("t2v-standard",
                              {"prompt": "x", "quality_preset": "quality"},
                              pipeline="t2v")
-        assert "_slg_high" in wf
-        assert "_slg_low" in wf
-        assert wf["_slg_high"]["class_type"] == "SkipLayerGuidanceWanVideo"
-        assert wf["_slg_high"]["inputs"]["blocks"] == "9"
-        assert wf["_slg_high"]["inputs"]["start_percent"] == 0.2
-        assert wf["_slg_high"]["inputs"]["end_percent"] == 0.9
-        assert wf["_slg_high"]["inputs"]["scale"] == 3.0
+        assert "_slg_high" not in wf
+        assert "_slg_low" not in wf
 
-    def test_slg_rewires_ksampler(self, engine):
+    def test_slg_explicit_true_still_injects(self, engine):
+        # Caller can still force-enable SLG via the explicit param if they
+        # know the workflow supports it. Keeps the injection path testable.
         wf = engine.hydrate("t2v-standard",
-                             {"prompt": "x", "quality_preset": "quality"},
+                             {"prompt": "x", "slg_enabled": True},
                              pipeline="t2v")
-        # KSampler HIGH model should now point to SLG node, not ModelSamplingSD3
         assert wf["11"]["inputs"]["model"] == ["_slg_high", 0]
-        # SLG's model input should point to the original source (node 8)
         assert wf["_slg_high"]["inputs"]["model"] == ["8", 0]
+        assert wf["_slg_high"]["class_type"] == "SkipLayerGuidanceWanVideo"
 
     def test_slg_override_params(self, engine):
         wf = engine.hydrate("t2v-standard",

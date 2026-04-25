@@ -143,7 +143,10 @@ QUALITY_PRESETS = {
         "lightning_strength_low": 1.0,
         "sampler_name": "res_multistep",
         "scheduler": "beta",
-        "slg_enabled": True,
+        # SLG disabled: SkipLayerGuidanceWanVideo (KJNodes) requires TeaCacheKJ
+        # in the workflow to inject transformer_options. Our native KSampler path
+        # doesn't go through TeaCache, so the node throws ValueError at sample time.
+        "slg_enabled": False,
     },
     "hero": {
         "steps": 12,
@@ -156,7 +159,7 @@ QUALITY_PRESETS = {
         "lightning_strength_low": 1.0,
         "sampler_name": "res_multistep",
         "scheduler": "beta",
-        "slg_enabled": True,
+        "slg_enabled": False,
     },
 }
 
