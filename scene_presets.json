@@ -1,15 +1,16 @@
 {
   "_notes": [
-    "Scene presets — civitai-researched (Apr 2026). Trigger words are creator-verified where possible.",
-    "Each preset stacks 1-3 content LoRAs + optional style/expression overlays.",
+    "Scene presets — civitai-researched with creator-verified trigger words.",
+    "Prompt design rules: lead with trigger, [SUBJECT_DESCRIPTION] generic placeholder so any input image works, rich scene transition, explicit element introduction (a man enters / his thick erect penis appears), layered body responses, anatomically detailed camera + lighting + 4k cinematic finisher.",
     "Stacking rules: max 3 content LoRAs, combined strength ≤ 2.5, HIGH pairs with HIGH / LOW with LOW.",
     "Base LoRAs (SECRET_SAUCE, FusionX, CubeyAI-General) assumed always on — NOT counted in the stack.",
     "Speed LoRAs (Lightning/lightx2v/Seko) managed by Quality preset — untouched by scene selection.",
-    "Instagirl at 0.5-0.7 stackable for realism — add manually.",
+    "Instagirl at 0.5-0.7 stackable for IG-model realism — toggle manually before generating.",
     "CRITICAL: LocalOptima LoRAs (Oral-Ins, CumShot) explicitly INCOMPATIBLE with LightX2V — creator warning.",
     "CRITICAL: Piledriver fails on large/veiny penises — don't stack BigCockOral under it.",
     "Edit `name_contains` substrings or strengths to taste. [BRACKET] placeholders get filled by user."
   ],
+
   "presets": [
     {
       "id": "pov_missionary_classic",
@@ -17,23 +18,11 @@
       "category": "POV Position",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "pov_missionary_v1.0",
-          "strength": 0.9,
-          "trigger": "missionary sex, with her legs spread"
-        },
-        {
-          "name_contains": "POV-Missionary-Insertion",
-          "strength": 0.8,
-          "trigger": "inserting his penis into her vagina"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "pov_missionary_v1.0", "strength": 0.9, "trigger": "missionary sex"},
+        {"name_contains": "POV-Missionary-Insertion", "strength": 0.8},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she lies on her back on a rumpled bed, legs spread wide, missionary sex, A man is thrusting his penis back and forth inside her vagina, the man takes his penis with his hand and inserts it, movement is fast with bouncing medium sized breasts, POV from above looking down, warm bedside lamp light, shallow depth of field, cinematic 4k, hyper-realistic skin detail",
+      "prompt": "missionary sex, with her legs spread having sex with a man, [SUBJECT_DESCRIPTION], scene transitions to a luxurious bedroom with cream silk sheets at golden hour, she lies on her back on rumpled sheets with her legs lifted and spread wide, A man takes his thick veiny erect penis with his hand and inserts it deep into her wet vagina, A man is thrusting his penis back and forth inside her with rapid hard strokes, his hips slap against her inner thighs with each fast thrust, movement is fast with bouncing medium sized breasts that jiggle with each impact, her hands clutch the sheets above her head, her head tilts back lips parted in pleasure, POV from above looking straight down at her body, warm bedside lamp light, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "Use Lightning I2V @ 8 steps / CFG 1 / Euler. Keep speed LoRAs in LOW pass only."
     },
     {
@@ -42,24 +31,12 @@
       "category": "Position",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Wan-Cowgirl-T2V",
-          "strength": 0.9,
-          "trigger": "cowgirl sex"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        },
-        {
-          "name_contains": "Wan22-BreastPlay",
-          "strength": 0.5,
-          "trigger": "her breasts bounce"
-        }
+        {"name_contains": "Wan-Cowgirl-T2V", "strength": 0.9, "trigger": "cowgirl sex"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"},
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.5}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], a woman is straddling a man and having sex with him, cowgirl sex, she bounces up and down on top of the man, you can see her bouncing up and down on the man's erect penis, her breasts bounce and jiggle, 45 degree front angle, golden hour window light through sheer curtains, dust motes, tripod static camera, 4k realism",
-      "caveats": "HIGH+LOW required together per creator dtwr434. Preview reference used lightning LoRAs."
+      "prompt": "cowgirl sex, [SUBJECT_DESCRIPTION], scene transitions to a luxurious bedroom with cream silk sheets at golden hour, a man is lying on his back on the bed with his thick veiny erect penis fully exposed, she walks forward and climbs onto him straddling his hips, his cock slides deep into her wet vagina, she rides him hard bouncing up and down on his shaft, her bare breasts bounce and jiggle wildly with each drop, her hands brace on his chest, his hands grip her hips guiding her rhythm, her head tilts back lips parted in pleasure, you can see his shaft sliding in and out of her wet pussy, 45 degree front angle, golden hour window light through sheer curtains, dust motes, tripod static camera, shallow depth of field, 4k cinematic film grain, anatomically detailed",
+      "caveats": "HIGH+LOW required together per dtwr434."
     },
     {
       "id": "doggy_full_stack",
@@ -67,24 +44,12 @@
       "category": "Position",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Wan22-T2V-DoggyStyle",
-          "strength": 0.9,
-          "trigger": "doggystyle from behind"
-        },
-        {
-          "name_contains": "Bouncy-Forward-Bends",
-          "strength": 0.5,
-          "trigger": "bends forward to show her cleavage"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Wan22-T2V-DoggyStyle", "strength": 0.9},
+        {"name_contains": "Bouncy-Forward-Bends", "strength": 0.5, "trigger": "bends forward to show her cleavage"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she is on all fours on the bed naked ass in the air, bends forward to show her cleavage, a man is thrusting his penis inside her from behind, her hips jolt with each impact, her breasts bounce and jiggle, side profile camera, dim lamp lit bedroom, motion blur on hips, 4k photorealistic",
-      "caveats": "Square output (480² or 720²) most consistent on Doggy Slider. Best-guess LoRA match."
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a dimly lit bedroom with rumpled sheets, she is on all fours on the bed naked ass arched in the air, bends forward to show her cleavage, A man kneels behind her gripping her hips firmly, his thick veiny erect penis thrusting deep into her wet vagina from behind, his hips slap against her ass cheeks with each hard thrust, her ass jolts forward with each impact, her breasts swing and jiggle beneath her, her back arches deeper, her face flushed with pleasure, side profile camera, dim lamp lit bedroom, motion blur on hips, shallow depth of field, 4k photorealistic cinematic film grain, anatomically detailed",
+      "caveats": "Square output (480² or 720²) most consistent on Doggy Slider."
     },
     {
       "id": "reverse_cowgirl_mql",
@@ -92,23 +57,11 @@
       "category": "Position",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "mql_casting_sex_reverse_cowgirl",
-          "strength": 0.9,
-          "trigger": "mqlspn_a reverse cowgirl"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        },
-        {
-          "name_contains": "Bouncy-Forward-Bends",
-          "strength": 0.4,
-          "trigger": "bouncing"
-        }
+        {"name_contains": "mql_casting_sex_reverse_cowgirl", "strength": 0.9, "trigger": "mqlspn_a"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"},
+        {"name_contains": "Bouncy-Forward-Bends", "strength": 0.4}
       ],
-      "prompt": "mqlspn_a, [SUBJECT_DESCRIPTION], she sits backwards on a man facing away from him lying forward on his legs, his penis is inside her vagina from below, she rocks her hips rhythmically, low angle from behind showing her ass curve, overcast window light, naturalistic, 24fps cinematic",
+      "prompt": "mqlspn_a, reverse cowgirl, [SUBJECT_DESCRIPTION], scene transitions to a private bedroom with overcast diffuse light through tall windows, A man is lying flat on his back on the bed with his thick veiny erect penis fully exposed, she sits backwards on him facing away from him leaning forward onto his thighs, his cock slides deep into her wet vagina from below, she rocks her hips rhythmically driving herself onto his shaft, her ass bounces with each drop, her back arches showing a long spine line, his hands grip her ass cheeks spreading them, low angle from behind showing her ass curve and his shaft, naturalistic 24fps cinematic, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "MQ Lab token mqlspn_a — verified on sibling 1923354. FPS 16 if motion too fast."
     },
     {
@@ -117,23 +70,11 @@
       "category": "Position",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "mql_casting_sex_doggy_kneel",
-          "strength": 0.9,
-          "trigger": "mqlspn_a doggy kneeling diagonal from behind"
-        },
-        {
-          "name_contains": "Bouncy-Forward-Bends",
-          "strength": 0.5,
-          "trigger": "breasts bouncing"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "mql_casting_sex_doggy_kneel", "strength": 0.9, "trigger": "mqlspn_a"},
+        {"name_contains": "Bouncy-Forward-Bends", "strength": 0.5},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "mqlspn_a, [SUBJECT_DESCRIPTION], she kneels diagonally on the bed, a man kneels behind her at an angle thrusting his penis into her vagina from behind, breasts bouncing, diagonal rear 45 angle, single softbox key light, wide aperture, 4k realism",
+      "prompt": "mqlspn_a, [SUBJECT_DESCRIPTION], scene transitions to a softly lit bedroom with a single softbox key light, she kneels diagonally on the bed on all fours, A man kneels behind her at a 45 degree angle gripping her hips firmly, his thick veiny erect penis thrusts hard into her wet vagina from behind, her ass jolts forward with each hard thrust, her breasts swing and bounce beneath her chest, her back arches and her hair sways, her hands grip the sheets, his hands roam from her hips to her ass, diagonal rear three-quarter angle, single softbox key light, wide aperture, shallow depth of field, 4k realism cinematic film grain, anatomically detailed",
       "caveats": "MQ Lab family-shared token. Increase steps if blurry."
     },
     {
@@ -142,18 +83,10 @@
       "category": "Position",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "Wan22-Piledriver",
-          "strength": 0.95,
-          "trigger": "p1ledriv3r"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Wan22-Piledriver", "strength": 0.95, "trigger": "p1ledriv3r"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "p1ledriv3r, [SUBJECT_DESCRIPTION], she is inverted on her shoulders with her legs folded back, a man stands over her thrusting his penis down into her vagina, close-up side angle, harsh overhead light with deep shadow, sweat sheen on skin, shallow DOF, 4k",
+      "prompt": "p1ledriv3r, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with harsh overhead light casting deep shadow, she is inverted on her shoulders with her legs folded back over her head, her ass and pussy fully exposed upward, A man stands above her gripping her ankles, his thick veiny erect penis thrusts straight down into her exposed vagina with hard hip drives, his hips slap against her thighs with each downward thrust, her face flushed showing shock and pleasure, her hands clutch the sheets above her head, sweat beads on her skin, close-up side angle, harsh overhead light with deep shadow, sweat sheen, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "DO NOT stack BigCockOral — piledriver fails on large/veiny penises (becomes bendy/sausage-like)."
     },
     {
@@ -162,13 +95,9 @@
       "category": "Oral",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "BigCockOral-Wan22-I2V",
-          "strength": 1.0,
-          "trigger": "he has a giant penis, she strokes his penis back and forth, she spits on the penis, she starts giving him a blowjob"
-        }
+        {"name_contains": "BigCockOral-Wan22-I2V", "strength": 1.0, "trigger": "he has a giant penis, she starts giving him a blowjob"}
       ],
-      "prompt": "a man is lying down on his back and a woman is kneeling between his legs, he has a giant penis, [SUBJECT_DESCRIPTION], she strokes his penis back and forth with her hands, she spits on the penis, she starts giving him a blowjob, POV from man's chest looking down, bedroom tungsten lamp light, close-up on her face, 4k",
+      "prompt": "a man is lying down on his back and a woman is kneeling between his legs, he has a giant penis, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm tungsten lamp light, she strokes his thick veiny penis back and forth with both hands, she spits on the penis dripping saliva down the shaft, she starts giving him a blowjob, her lips wrap around his cock head and slide down his shaft, her cheeks hollow with each deep stroke, his hand tangled in her hair guiding her head, saliva strands stretch from her lips to his shaft, her tongue swirls around the head, POV from man's chest looking down at her face, close-up bedroom tungsten lamp light, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "Needs FULL verbose trigger phrase — fires weakly below 0.8. 6 steps / lightx2v @ 3 HIGH / 1.5 LOW / CFG 1 Euler Ancestral."
     },
     {
@@ -177,13 +106,9 @@
       "category": "Oral",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "BigCockOral-Wan22-I2V",
-          "strength": 1.0,
-          "trigger": "he is face fucking her, she is grabbing his penis, deepthroat blowjob"
-        }
+        {"name_contains": "BigCockOral-Wan22-I2V", "strength": 1.0, "trigger": "he is face fucking her, deepthroat blowjob"}
       ],
-      "prompt": "a woman is kneeling in front of a man and leaning forward towards him, he has a giant penis, he is face fucking her, she is grabbing his penis, deepthroat blowjob, [SUBJECT_DESCRIPTION], tears streaking mascara, side profile handheld camera, garage overhead bulb light, shallow DOF, 4k gritty realism"
+      "prompt": "a woman is kneeling in front of a man and leaning forward towards him, he has a giant penis, he is face fucking her hard, deepthroat blowjob, [SUBJECT_DESCRIPTION], scene transitions to a dim space with a single overhead bulb casting harsh light, she grabs his thick veiny cock at the base, his shaft slides deep into her throat with each forward thrust, her throat bulges visibly with each entry, drool and saliva spill down her chin onto her chest, her eyes water with mascara streaks, his hand grips the back of her head pulling her aggressively onto his cock, side profile handheld camera, garage overhead bulb light, shallow depth of field, 4k gritty realism cinematic film grain, anatomically detailed"
     },
     {
       "id": "gentle_oral_insertion",
@@ -191,19 +116,11 @@
       "category": "Oral",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "oral-insertion",
-          "strength": 0.9,
-          "trigger": "A man appears and she sucks his penis"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.3,
-          "trigger": "vagina"
-        }
+        {"name_contains": "oral-insertion", "strength": 0.9, "trigger": "A man appears and she sucks his penis"},
+        {"name_contains": "PussyLoRA", "strength": 0.3, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she kneels before him on soft carpet, A man appears and she sucks his penis, slow deliberate motion, her hand gently curled at the base, soft window light from the left, medium shot eye-level, desaturated tones, 4k intimate realism",
-      "caveats": "DO NOT stack LightX2V — creator explicitly flagged quality loss. CFG ~3.5 HIGH / 5-7 LOW."
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a softly lit room with morning window light from the left, she kneels before him on soft carpet, A man appears and she sucks his penis, his thick veiny erect cock slides slowly into her open mouth, she takes him deep with slow deliberate motion, her hand gently curled around the base stroking in rhythm, her lips sealed wet around his shaft, her cheeks hollow with each suck, his hand rests gently on her cheek, slow tender pace, soft window light from the left, medium shot eye-level, desaturated tones, shallow depth of field, 4k intimate realism cinematic film grain, anatomically detailed",
+      "caveats": "DO NOT stack LightX2V — creator warning. CFG ~3.5 HIGH / 5-7 LOW."
     },
     {
       "id": "oral_to_cumshot_sequence",
@@ -211,18 +128,10 @@
       "category": "Climax",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "oral-insertion",
-          "strength": 0.8,
-          "trigger": "A man appears and she sucks his penis"
-        },
-        {
-          "name_contains": "CumShot",
-          "strength": 0.9,
-          "trigger": "A man cums on her"
-        }
+        {"name_contains": "oral-insertion", "strength": 0.8, "trigger": "A man appears and she sucks his penis"},
+        {"name_contains": "CumShot", "strength": 0.9, "trigger": "A man cums on her"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she kneels in front of him, A man appears and she sucks his penis, then pulls back with her mouth open, A man cums on her face, tongue out, man's hand on his penis in frame, 16:9 aspect, low angle, ambient bedside lamp, cinematic 4k",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with ambient bedside lamp glow, she kneels in front of a man, A man appears and she sucks his penis taking his thick cock deep into her mouth, then she pulls back with her mouth open and tongue out, his hand grips the base of his shaft aimed at her face, A man cums on her face, thick white ropes of cum spurt across her cheeks her chin and over her tongue, her eyes half-closed in bliss, her tongue catches a stream of cum, the man's cock visible in frame still pulsing, 16:9 aspect, low angle, ambient bedside lamp light, shallow depth of field, 24fps slow motion, 4k cinematic film grain, anatomically detailed",
       "caveats": "Cumshot scales with aspect ratio — stick to 16:9. CFG 3.5 HIGH / 7 LOW. NO LightX2V."
     },
     {
@@ -231,19 +140,11 @@
       "category": "Climax",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "pov_missionary_v1.0",
-          "strength": 0.8,
-          "trigger": "missionary sex"
-        },
-        {
-          "name_contains": "CumShot",
-          "strength": 0.9,
-          "trigger": "A man cums on her"
-        }
+        {"name_contains": "pov_missionary_v1.0", "strength": 0.8, "trigger": "missionary sex"},
+        {"name_contains": "CumShot", "strength": 0.9, "trigger": "A man cums on her"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], missionary sex on a bed, he pulls out at the climax, A man cums on her belly and breasts, man's hand on his penis in frame, 16:9 low angle, warm bedside lamp light, 24fps slow motion, 4k cinematic",
-      "caveats": "CumShot fires best when man already in frame with hand on penis. CFG 3.5 HIGH / 7 LOW. NO LightX2V."
+      "prompt": "missionary sex, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm bedside lamp light, she lies on her back on the bed legs spread wide, A man thrusts his thick veiny erect penis deep into her vagina with rapid hard strokes, then he pulls out at the climax pumping his cock with his hand aimed at her body, A man cums on her, thick white streams of cum land across her stomach and bouncing breasts, her hands grip the sheets her back arching, the man's cock visible in frame still pulsing, 16:9 low angle, warm bedside lamp light, shallow depth of field, 24fps slow motion, 4k cinematic film grain, anatomically detailed",
+      "caveats": "CumShot fires best with man already in frame. CFG 3.5 HIGH / 7 LOW. NO LightX2V."
     },
     {
       "id": "dildo_ride_full",
@@ -251,18 +152,10 @@
       "category": "Toys",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Wan22-T2V-DildoRide",
-          "strength": 0.9,
-          "trigger": "she rides a dildo, moving her body up and down as the dildo slides in and out of her vagina"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.5,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Wan22-T2V-DildoRide", "strength": 0.9, "trigger": "she rides a dildo, moving her body up and down as the dildo slides in and out of her vagina"},
+        {"name_contains": "PussyLoRA", "strength": 0.5, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she rides a dildo, moving her body up and down as the dildo slides in and out of her vagina, kneeling position on a loft floor, viewed from the front, volumetric window light, cinematic color grade, 4k realism, slow rhythmic motion",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a sunlit loft floor with volumetric window light, she rides a thick suction-cup dildo mounted to the floor, moving her body up and down as the dildo slides in and out of her vagina, kneeling position with her hands braced on her thighs, her labia stretch around the toy with each drop, wetness glistens on the shaft, her breasts bounce and jiggle wildly, her head tilts back lips parted in pleasure, slow rhythmic motion, viewed from the front, volumetric window light cinematic color grade, shallow depth of field, 4k realism cinematic film grain, anatomically detailed",
       "caveats": "Supports front/behind/high/low angle — swap 'viewed from' clause per angle."
     },
     {
@@ -271,19 +164,11 @@
       "category": "Toys",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "wan_dildo_closeup",
-          "strength": 0.9,
-          "trigger": "dildo inserted closeup"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.6,
-          "trigger": "vagina"
-        }
+        {"name_contains": "wan_dildo_closeup", "strength": 0.9},
+        {"name_contains": "PussyLoRA", "strength": 0.6, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], extreme close-up on her vagina, a dildo slides in and out slowly, glistening wetness, labia spread, macro lens 50mm f2.8, soft directional key light from right, detailed skin pores, 4k hyper-detail",
-      "caveats": "No confirmed civitai page for this LoRA — test at 0.7 first, raise if action weak."
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to extreme close-up macro on her wet glistening vagina, a thick veiny dildo slides slowly in and out of her, her labia stretch and grip around the toy with each stroke, threads of wetness drip down her thighs, her pussy lips spread visibly around the shaft, glistening juices coat the toy, her hand grips the base driving the toy deep, macro lens 50mm f2.8, soft directional key light from right, detailed skin pores, 4k hyper-detail macro photography cinematic film grain, anatomically detailed",
+      "caveats": "No confirmed civitai page for this LoRA — test at 0.7 first if action weak."
     },
     {
       "id": "dildo_fullbody_solo",
@@ -291,18 +176,10 @@
       "category": "Toys",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "wan_dildo_fullbody",
-          "strength": 0.9,
-          "trigger": "she uses a dildo on herself"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "wan_dildo_fullbody", "strength": 0.9},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], naked on her back on black silk sheets, she uses a dildo on herself sliding it in and out of her vagina, legs spread bent at the knees, low side angle, single practical lamp with deep shadow, 24fps slow motion, 4k",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with black silk sheets and a single practical lamp casting deep shadow, she lies naked on her back on the sheets, she works a thick veiny dildo in and out of her wet vagina with one hand, her other hand teases her hard nipple rolling it between her fingers, her hips arch off the bed with each thrust, her mouth open in soft moans, her toes curl, legs spread bent at the knees, low side angle, single practical lamp deep shadow, shallow depth of field, 24fps slow motion, 4k cinematic film grain, anatomically detailed",
       "caveats": "Best-guess LoRA — no confirmed civitai page."
     },
     {
@@ -311,18 +188,10 @@
       "category": "Multi-partner",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Double-Penetration",
-          "strength": 0.9,
-          "trigger": "dpbeh1nd"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Double-Penetration", "strength": 0.9, "trigger": "dpbeh1nd"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "dpbeh1nd, [SUBJECT_DESCRIPTION], she is on top of one man facing forward while another man penetrates her from behind, two penises inside her, her mouth slightly open panting, medium shot 45 degree angle, bedroom tungsten light, slow choreographed thrust, 4k realism",
+      "prompt": "dpbeh1nd, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm tungsten lighting, she is on top of one man facing forward while a second man penetrates her from behind, two thick veiny erect penises buried inside her, the front man thrusts up into her wet pussy while the rear man thrusts into her ass, her body sandwiched between them, her mouth open panting in pleasure, her breasts bouncing wildly between the two men, her hands brace on the front man's chest, both men's hands grip her hips and waist, slow choreographed thrust rhythm, medium shot 45 degree angle, bedroom tungsten light, shallow depth of field, 4k realism cinematic film grain, anatomically detailed",
       "caveats": "Lightx2v @ 2.2 strength HIGH / 0.8 LOW, 8 steps (4/4), CFG 1, Shift 8, Euler Beta57. Alt triggers: dpfr0nt, dpstand1ng."
     },
     {
@@ -331,39 +200,23 @@
       "category": "Multi-partner",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Double-Penetration",
-          "strength": 0.9,
-          "trigger": "dpfr0nt"
-        },
-        {
-          "name_contains": "Wan-Cowgirl-T2V",
-          "strength": 0.5,
-          "trigger": "cowgirl sex"
-        }
+        {"name_contains": "Double-Penetration", "strength": 0.9, "trigger": "dpfr0nt"},
+        {"name_contains": "Wan-Cowgirl-T2V", "strength": 0.5, "trigger": "cowgirl sex"}
       ],
-      "prompt": "dpfr0nt, [SUBJECT_DESCRIPTION], cowgirl sex on one man while second man penetrates from front, both penises inside her, her breasts bouncing, low angle hero shot, warm sunset light through window blinds, sharp focus on her face, 4k cinematic",
+      "prompt": "dpfr0nt, cowgirl sex, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm sunset light through window blinds, she rides one man cowgirl style while a second man stands at her front penetrating her, two thick veiny erect cocks buried inside her at once, both men thrusting in synchronized rhythm, her breasts bouncing wildly between the two men, her hands brace on the rear man's chest while the front man holds her face, her mouth open panting, her face flushed with intensity, low angle hero shot, warm sunset light through window blinds, sharp focus on her face, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "Shift 8 / Euler Beta57. Don't pair with Piledriver (positional conflict)."
     },
     {
       "id": "fingering_solo_closeup",
-      "name": "Solo Fingering Closeup",
+      "name": "Solo Fingering Closeup (I2V)",
       "category": "Solo",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "Fingering-I2V",
-          "strength": 0.9,
-          "trigger": "She inserts two fingers into her pussy. She masturbates by sliding her fingers in and out of her pussy"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.5,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Fingering-I2V", "strength": 0.9, "trigger": "She inserts two fingers into her pussy. She masturbates by sliding her fingers in and out of her pussy"},
+        {"name_contains": "PussyLoRA", "strength": 0.5, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], a nude woman lying on a bed, she inserts two fingers into her pussy, she masturbates by sliding her fingers in and out of her pussy, her other hand gripping the sheet, close-up from her hip level, soft morning window light, 4k intimate realism, slow breathing rhythm",
-      "caveats": "Creator explicitly recommends PussyLoRA at 0.4-0.6 to prevent vaginal distortion during finger motion."
+      "prompt": "a nude woman lying on a bed, [SUBJECT_DESCRIPTION], scene transitions to an intimate bedroom with soft morning window light, She inserts two fingers into her pussy, She masturbates by sliding her fingers in and out of her pussy with rhythmic strokes, her labia stretch around her fingers, her other hand grips the sheets clenching, her hips lift off the bed in pleasure, her toes curl, her breasts rise and fall with each breath, her mouth open in soft moans, close-up from her hip level showing her body and pussy, soft morning window light, shallow depth of field, 4k intimate realism cinematic film grain, slow breathing rhythm, anatomically detailed",
+      "caveats": "Creator recommends PussyLoRA at 0.4-0.6 to prevent vaginal distortion."
     },
     {
       "id": "breast_play_grab",
@@ -371,13 +224,9 @@
       "category": "Foreplay",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Wan22-BreastPlay",
-          "strength": 0.9,
-          "trigger": "she grabs her breasts with both hands and pinches her nipples with her fingers"
-        }
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.9, "trigger": "she grabs her breasts with both hands and pinches her nipples with her fingers"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], topless in front of a bathroom mirror, she grabs her breasts with both hands and pinches her nipples with her fingers, warm vanity lights, steam on glass, medium shot, slow deliberate pace, 4k",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a steamy bathroom with warm vanity lights and steam fogging the mirror, she stands topless in front of the bathroom mirror, she grabs her breasts with both hands and pinches her nipples with her fingers, kneading the soft flesh roughly, her thumbs rub circles around her hard pink nipples, her head tilts back with eyes half-closed in pleasure, her tongue runs slowly over her lower lip, her chest rises and falls with deep breaths, slow deliberate pace, medium shot, warm vanity lights with steam diffusion, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "v2 file fixed face-changing bug from v1 — verify your file is v2."
     },
     {
@@ -386,18 +235,10 @@
       "category": "Foreplay",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Wan22-BreastPlay",
-          "strength": 0.9,
-          "trigger": "the man is grabbing her breast"
-        },
-        {
-          "name_contains": "KISS",
-          "strength": 0.6,
-          "trigger": "They are tongue kissing with passion"
-        }
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.9, "trigger": "the man is grabbing her breast"},
+        {"name_contains": "KISS", "strength": 0.6, "trigger": "They are tongue kissing with passion"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she and a man tangled on a couch, the man is grabbing her breast, they are tongue kissing with passion, his hand squeezing firmly, medium shot from the side, soft table lamp backlight, 4k sensual realism"
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a couch in a softly lit lounge with table lamp backlight, she is tangled on the couch with a man, the man is grabbing her bare breast firmly with both hands, kneading the soft flesh, his thumbs rolling over her hard pink nipples, They are tongue kissing with passion, their tongues sliding visibly together, her hand grips the back of his neck pulling him closer, his other hand on her bare hip pulling her against him, her chest rises with each breath, soft moans escaping between kisses, medium shot from the side, soft table lamp backlight, shallow depth of field, 4k sensual realism cinematic film grain, anatomically detailed"
     },
     {
       "id": "kissing_bedroom",
@@ -405,13 +246,9 @@
       "category": "Foreplay",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "KISS",
-          "strength": 0.9,
-          "trigger": "They are kissing with passion"
-        }
+        {"name_contains": "KISS", "strength": 0.9, "trigger": "They are kissing with passion"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], a couple on a bed at night, they are kissing with passion, they are tongue kissing with passion, they feel each others bodies, hands roaming, close-up profile shot, warm low-key sidelight, shallow DOF, 4k romantic",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bed at night with warm low-key sidelight, she and a man on the bed at night, They are kissing with passion, They are tongue kissing with passion, their lips press deep together with tongues sliding visibly, They feel each others bodies, his hand on her bare hip pulling her against him, her hand on the back of his neck pulling him deeper, their bodies pressed close, slow tender pace, soft moans between kisses, close-up profile shot, warm low-key sidelight, shallow depth of field, 4k romantic cinematic film grain, anatomically detailed",
       "caveats": "Use Euler + lightx2v per creator. Simple prompt scales better than complex."
     },
     {
@@ -420,18 +257,10 @@
       "category": "Movement",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "V3TWERK",
-          "strength": 0.9,
-          "trigger": "twuuur"
-        },
-        {
-          "name_contains": "Bouncy-Forward-Bends",
-          "strength": 0.4,
-          "trigger": "ass bouncing"
-        }
+        {"name_contains": "V3TWERK", "strength": 0.9, "trigger": "twuuur"},
+        {"name_contains": "Bouncy-Forward-Bends", "strength": 0.4}
       ],
-      "prompt": "twuuur, [SUBJECT_DESCRIPTION], she bends forward and twerks rhythmically, glutes contract in a fluid rhythm, ass bouncing, behind camera angle waist-level, neon nightclub backlight magenta and cyan, 24fps steady, 4k",
+      "prompt": "twuuur, [SUBJECT_DESCRIPTION], scene transitions to a neon-lit nightclub backdrop with magenta and cyan rim light, she bends forward and twerks rhythmically to the beat, her bare ass bouncing and clapping with each pop, her glutes contract and release in fluid rhythm, her thighs flex with each drop, her hands brace on her thighs supporting her, her hair sways with the motion, behind camera angle waist-level, neon nightclub backlight magenta and cyan, 24fps steady motion blur, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "twuuur is the exact token — type verbatim."
     },
     {
@@ -440,13 +269,9 @@
       "category": "Movement",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "SingularUnity-Twerk",
-          "strength": 0.8,
-          "trigger": "Dynamic twerk emphasizing elastic thigh and glute deformation"
-        }
+        {"name_contains": "SingularUnity-Twerk", "strength": 0.8, "trigger": "Dynamic twerk emphasizing elastic thigh and glute deformation"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], a woman wearing a bright green sports bra and boyshorts, Dynamic twerk emphasizing elastic thigh and glute deformation, visible muscle contractions and releases, gym mirror background, overhead LED panel, 3/4 rear angle, 4k",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a fitness studio with floor-to-ceiling mirrors and overhead LED panel lighting, she wears a tight sports bra and tight boyshorts, Dynamic twerk emphasizing elastic thigh and glute deformation, her ass cheeks ripple and bounce with each pop, visible muscle contractions and releases, her thighs flex visibly with each drop, gym mirror reflecting her motion behind, her hair sways with the movement, sweat sheen on her skin, 3/4 rear angle, overhead LED panel lighting, shallow depth of field, 4k cinematic film grain, anatomically detailed",
       "caveats": "WAN 2.1 base — treat as LOW-only when stacking on 2.2."
     },
     {
@@ -455,13 +280,9 @@
       "category": "Expression",
       "pipeline": "i2v",
       "loras": [
-        {
-          "name_contains": "mql_wink",
-          "strength": 0.9,
-          "trigger": "A woman winks once"
-        }
+        {"name_contains": "mql_wink", "strength": 0.9, "trigger": "A woman winks once"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], extreme close-up on her face, A woman winks once with her left eye, playful smirk, natural makeup, soft beauty-dish light from slightly above, shallow DOF blurring background, 4k skin texture detail",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to an intimate close-up shot with soft beauty-dish light, extreme close-up on her face, A woman winks once with her left eye then smiles slowly, her tongue runs over her lower lip teasingly, mischievous smirk forming, her eyes lock with the camera in intimate eye contact, natural makeup with smoky eyeshadow, slight head tilt, slow deliberate motion, soft beauty-dish light from slightly above, shallow DOF blurring background, 4k skin texture detail cinematic film grain, anatomically detailed",
       "caveats": "Model can only wink LEFT eye (known limitation). FPS 16 if too fast."
     },
     {
@@ -470,18 +291,10 @@
       "category": "Anatomy",
       "pipeline": "t2v",
       "loras": [
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.9,
-          "trigger": "vagina, she is spreading her labia with her fingers"
-        },
-        {
-          "name_contains": "Fingering-T2V",
-          "strength": 0.5,
-          "trigger": "spreading her labia"
-        }
+        {"name_contains": "PussyLoRA", "strength": 0.9, "trigger": "vagina, she is spreading her labia with her fingers"},
+        {"name_contains": "Fingering-T2V", "strength": 0.5}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], extreme macro on her vagina, she is spreading her labia with her fingers, [thick pubic hair | shaved | trimmed], shot from below looking up, directional softbox light, glistening wetness, 4k macro photography, shallow DOF",
+      "prompt": "extreme macro on a woman's vagina, [SUBJECT_DESCRIPTION], scene transitions to extreme macro detail with directional softbox key light, she is spreading her labia with her fingers showing pink wet inside, her clitoris visible at the top swelling with arousal, slow rhythmic massage of her clit with her fingertip, glistening wetness drips down her inner thighs, her fingers part her lips revealing the entrance to her vagina, shot from below looking up between her thighs, directional softbox key light, shallow depth of field macro photography, 4k hyper-detail cinematic film grain, anatomically detailed",
       "caveats": "Trigger word is 'vagina' (never 'pussy' — not in training data). T2V preferred; creator didn't test I2V."
     },
     {
@@ -490,19 +303,11 @@
       "category": "Position",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "CubeyAI-NSFW-Wan22",
-          "strength": 0.9,
-          "trigger": "nsfwsks [or descriptive]"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "CubeyAI-NSFW-Wan22", "strength": 0.9},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], explicit sex scene [SCENE_DESCRIPTION], penis goes in and out of vagina rhythmically, natural motion, warm practical lamp light, handheld cinematic 4k, realistic skin",
-      "caveats": "Underbaked — batch 4 seeds, some will be bad. Works 480p I2V but NOT 720p I2V. Creator recommends descriptive prompting over 'nsfwsks' token."
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm practical lamp light, explicit hardcore sex scene, she lies naked on the bed with a man between her legs, A man's thick veiny erect penis goes deep in and out of her wet vagina rhythmically, his hands grip her thighs holding her open, her breasts bounce and jiggle with each thrust, her face flushed her mouth open in soft moans, natural untouched motion, his hips slap against her with each thrust, handheld cinematic shot, warm practical lamp light, shallow depth of field, 4k realistic skin cinematic film grain, anatomically detailed",
+      "caveats": "Underbaked — batch 4 seeds, some will be bad. Works 480p I2V but NOT 720p I2V."
     },
     {
       "id": "t2v_pov_missionary",
@@ -510,19 +315,11 @@
       "category": "POV Position",
       "pipeline": "t2v",
       "loras": [
-        {
-          "name_contains": "wan2.2_t2v_highnoise_pov_missionary",
-          "strength": 0.9,
-          "trigger": "missionary sex"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.4,
-          "trigger": "vagina"
-        }
+        {"name_contains": "wan2.2_t2v_highnoise_pov_missionary", "strength": 0.9, "trigger": "missionary sex"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she lies on her back on a rumpled bed, legs spread wide, missionary sex, A man is thrusting his penis back and forth inside her vagina, movement is fast with bouncing medium sized breasts, POV from above looking down, warm bedside lamp light, shallow depth of field, cinematic 4k, hyper-realistic skin detail",
-      "caveats": "T2V variant of POV Missionary. Use Lightning T2V @ 8 steps / CFG 1 / Euler."
+      "prompt": "missionary sex, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm bedside lamp light, she lies on her back on a rumpled bed, legs spread wide and lifted around his hips, A man on top of her thrusts his thick veiny erect penis back and forth deep inside her wet vagina, his hips slap against her thighs with each fast thrust, her bare breasts bounce with each impact, her hands grip his shoulders pulling him closer, her head tilts back lips parted, his hands brace beside her head, POV from above looking straight down, warm bedside lamp light, shallow depth of field, 4k cinematic film grain, hyper-realistic skin detail, anatomically detailed",
+      "caveats": "T2V variant of POV Missionary."
     },
     {
       "id": "t2v_fingering_solo",
@@ -530,19 +327,11 @@
       "category": "Solo",
       "pipeline": "t2v",
       "loras": [
-        {
-          "name_contains": "Fingering-T2V",
-          "strength": 0.9,
-          "trigger": "She inserts two fingers into her pussy. She masturbates by sliding her fingers in and out of her pussy"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.5,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Fingering-T2V", "strength": 0.9, "trigger": "She inserts two fingers into her pussy"},
+        {"name_contains": "PussyLoRA", "strength": 0.5, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], a nude woman lying on a bed, she inserts two fingers into her pussy, she masturbates by sliding her fingers in and out of her pussy, her other hand gripping the sheet, close-up from her hip level, soft morning window light, 4k intimate realism, slow breathing rhythm",
-      "caveats": "T2V file. Pair with PussyLoRA at 0.4-0.6 to prevent vaginal distortion."
+      "prompt": "[SUBJECT_DESCRIPTION] a nude woman lying on a bed, scene transitions to an intimate bedroom with soft morning window light, She inserts two fingers into her pussy, She masturbates by sliding her fingers in and out of her pussy with rhythmic strokes, her labia stretch around her fingers, her other hand kneads her bare breast rolling her nipple between her fingers, her hips lift off the bed in pleasure, her toes curl, her mouth open in soft moans, her chest rises and falls, close-up from her hip level, soft morning window light, shallow depth of field, 4k intimate realism cinematic film grain, anatomically detailed",
+      "caveats": "T2V file. PussyLoRA at 0.4-0.6 prevents vaginal distortion."
     },
     {
       "id": "both_oral_classic",
@@ -550,18 +339,10 @@
       "category": "Oral",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "Oral-Ins-High",
-          "strength": 0.9,
-          "trigger": "A man appears and she sucks his penis"
-        },
-        {
-          "name_contains": "PussyLoRA",
-          "strength": 0.3,
-          "trigger": "vagina"
-        }
+        {"name_contains": "Oral-Ins-High", "strength": 0.9, "trigger": "A man appears and she sucks his penis"},
+        {"name_contains": "PussyLoRA", "strength": 0.3, "trigger": "vagina"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she kneels before him on soft carpet, A man appears and she sucks his penis, slow deliberate motion, her hand gently curled at the base, soft window light from the left, medium shot eye-level, desaturated tones, 4k intimate realism",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a softly lit room with window light from the left, she kneels before a man on soft carpet, A man appears and she sucks his penis taking his thick veiny erect cock between her lips, slow deliberate motion, her cheeks hollow with each suck, her tongue swirls around the head, her hand grips the base of his shaft stroking in rhythm, his hand resting gently on the back of her head, saliva strands stretch from her lips, her eyes lift up to meet his, soft window light from the left, medium shot eye-level, desaturated tones, shallow depth of field, 4k intimate realism cinematic film grain, anatomically detailed",
       "caveats": "Works T2V + I2V. DO NOT stack LightX2V — creator warning."
     },
     {
@@ -570,14 +351,169 @@
       "category": "Climax",
       "pipeline": "both",
       "loras": [
-        {
-          "name_contains": "CumShot-High",
-          "strength": 0.9,
-          "trigger": "A man cums on her"
-        }
+        {"name_contains": "CumShot-High", "strength": 0.9, "trigger": "A man cums on her"}
       ],
-      "prompt": "[SUBJECT_DESCRIPTION], she kneels in front of him with her mouth open and tongue out, A man cums on her face, thick ropes of cum landing across her cheeks, her eyes half-closed in bliss, the man's hand on his penis aimed at her, 16:9 low angle, warm bedside lamp light, 24fps slow motion, 4k cinematic",
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm bedside lamp light, she kneels in front of a man with her mouth open and tongue out ready, the man's hand grips the base of his thick veiny erect penis aimed at her face, A man cums on her face, thick white ropes of cum spurt across her cheeks her chin and over her tongue in fast pulses, her eyes half-closed in bliss, her tongue catches a stream of cum, the man's cock visible in frame still pulsing with each spurt, her hands rest on her thighs, 16:9 low angle, warm bedside lamp light, shallow depth of field, 24fps slow motion, 4k cinematic film grain, anatomically detailed",
       "caveats": "Works T2V + I2V. CFG 3.5 HIGH / 7 LOW. NO LightX2V. Best at 16:9."
+    },
+    {
+      "id": "cowgirl_creampie_finish",
+      "name": "Cowgirl → Creampie Finish",
+      "category": "Climax",
+      "pipeline": "both",
+      "loras": [
+        {"name_contains": "Wan-Cowgirl-T2V", "strength": 0.85, "trigger": "cowgirl sex"},
+        {"name_contains": "CumShot", "strength": 0.85, "trigger": "A man cums on her"},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
+      ],
+      "prompt": "cowgirl sex, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm bedside lamp light, she rides a man hard bouncing on top of him, his thick veiny erect penis fully buried in her wet vagina, her bare breasts bouncing wildly with each drop, then she lifts off and the man strokes his cock with his hand, A man cums on her, thick white streams of cum erupt onto her belly and dripping down to her wet pussy, her labia drip with cum, her face flushed in afterglow, low angle showing both their bodies, warm bedroom light, shallow depth of field, 4k climactic finish cinematic film grain, anatomically detailed",
+      "caveats": "CFG 3.5 HIGH / 7 LOW. NO LightX2V."
+    },
+    {
+      "id": "doggy_pull_out_finish",
+      "name": "Doggystyle → Pull-Out Cumshot on Ass",
+      "category": "Climax",
+      "pipeline": "both",
+      "loras": [
+        {"name_contains": "Wan22-T2V-DoggyStyle", "strength": 0.85},
+        {"name_contains": "CumShot", "strength": 0.9, "trigger": "A man cums on her"},
+        {"name_contains": "Bouncy-Forward-Bends", "strength": 0.4}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a dim warm bedroom with bedside lamp glow, she is on all fours arched ass up, A man kneels behind her thrusting his thick veiny erect penis hard into her wet vagina from behind, his hips slap against her ass cheeks rapidly, then he pulls out at the climax pumping his cock with his hand, A man cums on her, thick white cum splatters across her round ass cheeks and lower back dripping down between her cheeks, her ass jiggles with the impact, her back arches, her face glances back over her shoulder, low rear angle, dim warm bedroom light, shallow depth of field, 4k cinematic film grain, anatomically detailed",
+      "caveats": "CFG 3.5 HIGH / 7 LOW. NO LightX2V."
+    },
+    {
+      "id": "cum_in_mouth_swallow",
+      "name": "Cum In Mouth → Swallow",
+      "category": "Climax",
+      "pipeline": "both",
+      "loras": [
+        {"name_contains": "Oral-Ins-High", "strength": 0.85, "trigger": "A man appears and she sucks his penis"},
+        {"name_contains": "CumShot", "strength": 0.9, "trigger": "A man cums on her"}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm tungsten light, she is on her knees in front of a man, A man appears and she sucks his penis taking his thick cock to the back of her throat, then he holds her head still as A man cums on her, thick cum floods her open mouth pooling on her tongue, she closes her lips around his shaft and swallows visibly, her throat moving with the swallow, a strand of cum lingers on her lower lip, she opens her mouth to show the residue then sticks out her tongue, close-up profile shot, warm tungsten light, shallow depth of field, 4k cinematic film grain, anatomically detailed",
+      "caveats": "NO LightX2V. CFG 3.5 HIGH / 7 LOW."
+    },
+    {
+      "id": "tit_play_titjob",
+      "name": "Titjob with Cumshot",
+      "category": "Oral",
+      "pipeline": "both",
+      "loras": [
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.85, "trigger": "she grabs both her breasts"},
+        {"name_contains": "Oral-Ins-High", "strength": 0.6},
+        {"name_contains": "CumShot", "strength": 0.7, "trigger": "A man cums on her"}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with soft warm lighting, she kneels in front of a man, she grabs both her breasts and presses them together firmly around his thick veiny erect penis, his cock slides up and down between her bare cleavage in slow rhythmic strokes, the head of his cock emerges near her chin and she licks it each time it appears, her tongue flicks the head, then A man cums on her, thick streams of cum erupt across her bouncing breasts and chin, her tongue catches a drip, her hands keep her tits pressed around his cock as he finishes, medium close-up front angle, soft bedroom light, shallow depth of field, 4k cinematic film grain, anatomically detailed",
+      "caveats": "NO LightX2V. Three-LoRA stack at conservative strengths."
+    },
+    {
+      "id": "cowgirl_partner_breast_grab",
+      "name": "Cowgirl + Man Grabs Tits",
+      "category": "Position",
+      "pipeline": "both",
+      "loras": [
+        {"name_contains": "Wan-Cowgirl-T2V", "strength": 0.85, "trigger": "cowgirl sex"},
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.7, "trigger": "the man is grabbing her breast"}
+      ],
+      "prompt": "cowgirl sex, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm window light, she straddles a man and rides him cowgirl style, his thick veiny erect penis fully inserted in her wet vagina, the man is grabbing her breast firmly with both hands kneading them, his thumbs roll over her hard nipples as she bounces on his cock, her breasts spill through his fingers with each bounce, she rides him hard up and down on his shaft, her head tilts back lips parted in pleasure, her hair sways with the motion, low angle from his POV, warm window light through curtains, shallow depth of field, 4k cinematic film grain, anatomically detailed"
+    },
+    {
+      "id": "missionary_creampie",
+      "name": "Missionary → Creampie",
+      "category": "Climax",
+      "pipeline": "i2v",
+      "loras": [
+        {"name_contains": "pov_missionary_v1.0", "strength": 0.85, "trigger": "missionary sex"},
+        {"name_contains": "CumShot", "strength": 0.85, "trigger": "A man cums on her"},
+        {"name_contains": "PussyLoRA", "strength": 0.45, "trigger": "vagina"}
+      ],
+      "prompt": "missionary sex, [SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm sheets at golden hour, she lies on her back legs spread wide and lifted, A man thrusts his thick veiny erect penis deep into her wet vagina with rapid hard strokes, her breasts bounce with each impact, then he buries himself fully and A man cums on her, thick white cum oozes out of her stretched pussy around his shaft as he pulls out slowly, her labia visibly leak cum onto the sheets, her chest rises and falls in afterglow, his cock visible glistening with their combined fluids, low angle close-up on her crotch, warm sheets golden hour light, shallow depth of field, 4k climax cinematic film grain, anatomically detailed",
+      "caveats": "CFG 3.5 HIGH / 7 LOW. NO LightX2V."
+    },
+    {
+      "id": "dual_stim_dildo_fingering",
+      "name": "Dildo + Fingering Solo",
+      "category": "Solo",
+      "pipeline": "i2v",
+      "loras": [
+        {"name_contains": "wan_dildo_fullbody", "strength": 0.7},
+        {"name_contains": "Fingering-I2V", "strength": 0.7, "trigger": "She masturbates by sliding her fingers in and out"},
+        {"name_contains": "PussyLoRA", "strength": 0.5, "trigger": "vagina"}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with single bedside lamp casting deep shadow, she lies naked on her back legs spread, she works a thick veiny dildo in and out of her wet pussy with one hand while She masturbates by sliding her fingers in and out — her other hand rubs her clit fast in circles, double stimulation, her hips arch off the bed, her toes curl, her mouth open in moans, her breasts rise and fall rapidly, her back arches deeper, low side angle, single bedside lamp deep shadow, 24fps slow motion, shallow depth of field, 4k cinematic film grain, anatomically detailed",
+      "caveats": "Three-LoRA stack at conservative strengths to avoid overcooking."
+    },
+    {
+      "id": "pussy_play_solo_combined",
+      "name": "Pussy Play Solo (Macro + Fingering)",
+      "category": "Anatomy",
+      "pipeline": "t2v",
+      "loras": [
+        {"name_contains": "PussyLoRA", "strength": 0.9, "trigger": "vagina"},
+        {"name_contains": "Fingering-T2V", "strength": 0.6, "trigger": "She inserts two fingers into her pussy"}
+      ],
+      "prompt": "extreme macro on [SUBJECT_DESCRIPTION] vagina, scene transitions to extreme macro between her thighs with directional softbox key light, she is spreading her labia with her fingers showing pink wet inside, then She inserts two fingers into her pussy, sliding her fingers in and out slowly, her labia grip and stretch around her fingers, her clitoris visible swelling with arousal at the top, glistening wetness coats her fingers, drips of wetness run down her inner thighs, shot from below looking up between her spread thighs, directional softbox key light, shallow depth of field, 4k macro hyper-detail cinematic film grain, anatomically detailed",
+      "caveats": "Trigger word 'vagina' not 'pussy'. T2V preferred."
+    },
+    {
+      "id": "instagirl_strip_tease",
+      "name": "Instagirl Selfie Strip Tease",
+      "category": "Solo",
+      "pipeline": "t2v",
+      "loras": [
+        {"name_contains": "Instagirl", "strength": 0.9, "trigger": "Instagirl"}
+      ],
+      "prompt": "Instagirl, [SUBJECT_DESCRIPTION], scene transitions to a bright modern bedroom with soft window light from the right, she stands holding her phone for a mirror selfie, slowly lifts her tight crop top revealing her bare bouncing breasts, then her thumbs hook into her thong waistband and slide it down her thighs, her hips sway with the motion, biting her lower lip with a smirk, her eyes meet the camera through the mirror, full body mirror reflection in frame, soft window light from the right, shallow depth of field, 4k IG-aesthetic cinematic film grain, anatomically detailed",
+      "caveats": "Toggle Instagirl manually before generating — it's normally off as a base style LoRA."
+    },
+    {
+      "id": "doggy_pov_aggressive",
+      "name": "Doggystyle POV Aggressive",
+      "category": "POV Position",
+      "pipeline": "i2v",
+      "loras": [
+        {"name_contains": "Wan22-T2V-DoggyStyle", "strength": 0.9},
+        {"name_contains": "Bouncy-Forward-Bends", "strength": 0.5},
+        {"name_contains": "PussyLoRA", "strength": 0.4, "trigger": "vagina"}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a dim warm bedroom with bedside lamp glow, she is on all fours ass arched up, POV first-person from behind her, my hands grip her hips firmly as I thrust my thick veiny erect penis deep into her wet vagina from behind, my cock slides in and out of her glistening pussy with each hard hip drive, her ass jolts forward with each thrust, her back arches deeper, slap sounds of skin on skin echo, her hands grip the sheets, her hair falls forward, handheld POV camera shake, dim warm bedside lamp, shallow depth of field, 4k visceral close-up cinematic film grain, anatomically detailed",
+      "caveats": "POV-narrated doggy scene; works on I2V with a back-view input image of subject."
+    },
+    {
+      "id": "casting_couch_doggy",
+      "name": "Casting Couch Doggy (MQ Lab)",
+      "category": "Position",
+      "pipeline": "i2v",
+      "loras": [
+        {"name_contains": "mql_casting_sex_doggy_kneel", "strength": 0.9, "trigger": "mqlspn_a"},
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.5}
+      ],
+      "prompt": "mqlspn_a, casting couch scene, [SUBJECT_DESCRIPTION], scene transitions to a sleazy office with leather casting couch under harsh fluorescent overhead light, she is on all fours on the leather couch, A man stands behind her gripping her hips, his thick veiny erect penis thrusts hard into her wet vagina from behind, the man is grabbing her breast reaching under her hanging tit kneading roughly as he fucks her, her body jolts forward with each thrust, her breasts swing beneath her chest, her hair falls forward, her face flushed, behind-the-scenes camera angle, harsh fluorescent overhead light, shallow depth of field, 4k gritty cinematic film grain, anatomically detailed",
+      "caveats": "Stacks MQ Doggy + BreastPlay for that 'casting' vibe."
+    },
+    {
+      "id": "rough_titty_fuck",
+      "name": "Rough Tit Fuck POV",
+      "category": "Oral",
+      "pipeline": "i2v",
+      "loras": [
+        {"name_contains": "BigCockOral-Wan22-I2V", "strength": 0.85, "trigger": "he has a giant penis"},
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.7, "trigger": "she grabs both her breasts"}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a bedroom with warm bedroom lamp lighting, she kneels in front of POV camera, he has a giant penis lying on her chest between her bare breasts, she grabs both her breasts and squeezes them tight around his thick veiny shaft, my cock slides up and down between her bare cleavage with rapid strokes, the head of my cock peeks out near her chin and she licks it each time it emerges, her tongue swirls around the head, her tits bounce and jiggle wildly with each thrust, her eyes lock with mine, POV from above looking down at her face and chest, warm bedroom lamp light, shallow depth of field, 4k explicit cinematic film grain, anatomically detailed",
+      "caveats": "BigCockOral fires weakly below 0.8 — may need full verbose trigger if action weak."
+    },
+    {
+      "id": "kiss_then_breast_grab",
+      "name": "Kiss → Strip → Breast Play",
+      "category": "Foreplay",
+      "pipeline": "both",
+      "loras": [
+        {"name_contains": "KISS", "strength": 0.85, "trigger": "They are tongue kissing with passion"},
+        {"name_contains": "Wan22-BreastPlay", "strength": 0.7, "trigger": "the man is grabbing her breast"}
+      ],
+      "prompt": "[SUBJECT_DESCRIPTION], scene transitions to a couch with warm candlelight flicker, she is tangled with a man on a couch, They are tongue kissing with passion deep and slow, their tongues sliding visibly together, his hand slips under her shirt and onto her bare breast, the man is grabbing her breast firmly squeezing her soft flesh, his thumb rolls over her hardening nipple, her shirt slides down off her shoulder revealing her bare skin, her hand grips his hair pulling him closer into the kiss, her chest rises with each breath, slow tender pace, medium close-up profile, warm candlelight flicker, shallow depth of field, 4k sensual buildup cinematic film grain, anatomically detailed"
     }
   ]
 }
