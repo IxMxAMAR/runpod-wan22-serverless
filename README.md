@@ -2,6 +2,8 @@
 
 Serverless video generation endpoints for WAN 2.2 14B on RunPod.
 
+> 🖥️ **Just want to use the desktop GUI?** See **[docs/GUI_USER_GUIDE.md](docs/GUI_USER_GUIDE.md)** — beginner-friendly setup + usage guide covering presets, scene recipes, LoRAs, and troubleshooting.
+
 ## Endpoints
 
 - **wan22-t2v** — Text-to-Video (dual-pass HIGH/LOW, 4-step Lightning)
